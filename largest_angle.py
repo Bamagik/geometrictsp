@@ -48,6 +48,8 @@ def convex_hull(points: list):
 def largest_angle_tsp(points):
     hull = convex_hull(points)
 
+    print(hull)
+
     difference = list(set(points).difference(set(hull)))
     difference.sort(key=lambda p: p[0]) # sort by x
 
