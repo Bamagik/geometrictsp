@@ -4,7 +4,10 @@ from matplotlib import pyplot as plot
 
 
 def calculate_eccentricity(p, q, r):
-    return np.linalg.norm([q, r]) / (np.linalg.norm([p, q]) + np.linalg.norm([p, r]))
+    p = np.array(p)
+    q = np.array(q)
+    r = np.array(r)
+    return np.linalg.norm(q - r) / (np.linalg.norm(p - q) + np.linalg.norm(p - r))
 
 
 def eccentric_ellipse(points):

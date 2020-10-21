@@ -3,9 +3,9 @@ from matplotlib import pyplot as plot
 
 
 def calculate_angle(p1, p2, p3):
-    # where p1 is vertext
-    v1 = np.array([p2[0] - p1[0], p2[1] - p1[1]])
-    v2 = np.array([p3[0] - p1[0], p3[1] - p1[1]])
+    # where p1 is vertex
+    v1 = np.array(p2) - np.array(p1)
+    v2 = np.array(p3) - np.array(p1)
 
     return np.arccos(np.dot(v1, v2) / ( np.linalg.norm(v1) * np.linalg.norm(v2) ))
 

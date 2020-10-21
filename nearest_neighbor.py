@@ -3,7 +3,7 @@ from matplotlib import pyplot as plot
 from scipy.spatial import KDTree
 
 def distance(p1: tuple, p2: tuple):
-    return np.linalg.norm([p1, p2])
+    return np.linalg.norm(np.array(p1) - np.array(p2))
 
 def find_nearest_neighbour(pt: tuple, points: list):
     best_dist = np.inf
