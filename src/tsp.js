@@ -3,6 +3,11 @@ import { sleep } from './funcs';
 const math = require('mathjs');
 const timeoutms = 300;
 
+function calculateDistance(p, q) {
+    const v = [p.x - q.x, p.y - q.y];
+    return math.norm(v);
+}
+
 function calculateAngle(p, q, r) {
     const v1 = [q.x - p.x, q.y - p.y]
     const v2 = [r.x - p.x, r.y - p.y]
@@ -11,11 +16,24 @@ function calculateAngle(p, q, r) {
 }
 
 function calculateEccentricity(p, q, r) {
-    const v1 = [q.x - r.x, q.y - r.y]
-    const v2 = [p.x - q.x, p.y - q.y]
-    const v3 = [p.x - r.x, p.y - r.y]
+    return calculateDistance(q, r) / 
+        ( calculateDistance(p, q) + calculateDistance(p, r) );
+}
 
-    return math.norm(v1) / (math.norm(v2) + math.norm(v3));
+function nearestNeighbor(pt, points) {
+    let bestDist = Infinity;
+    let bestIdx = null;
+    
+    for (const idx in points) {
+        const q = points[idx];
+        const dist = calculateDistance(q, pt);
+        if (dist < bestDist) {
+            bestDist = dist;
+            bestIdx = idx;
+        }
+    }
+
+    return bestIdx;
 }
 
 
@@ -150,4 +168,47 @@ export async function eccentricEllipseTSP(points, updateFunc) {
     }
 
     return hull;
+}
+
+export async function nearestNeighborTSP(points, updateFunc) {
+    let bestCost = Infinity;
+    let bestTSP = null;
+
+    for (const startIdx in points) {
+        let tsp = [points[startIdx]];
+        let remainingPoints = [...points];
+        remainingPoints.splice(startIdx, 1);
+
+        while (tsp.length !== points.length) {
+            let bestDist = Infinity;
+            let bestIdx = null;
+
+            for (const idx in remainingPoints) {
+                const dist = calculateDistance(remainingPoints[idx], tsp[tsp.length - 1])
+                if (dist < bestDist) {
+                    bestDist = dist;
+                    bestIdx = idx;
+                }
+            }
+            tsp.push(remainingPoints[bestIdx]);
+            remainingPoints.splice(bestIdx, 1);
+
+            if (updateFunc) {
+                await updateFunc(tsp);
+                await sleep(timeoutms/3);
+            }
+        }
+        let cost = 0;
+        for (const idx in tsp) {
+            const p = tsp[idx];
+            const q = tsp[(idx === '0' ? tsp.length : idx) - 1]
+
+            cost += calculateDistance(p, q);
+        }
+        if (cost < bestCost) {
+            bestCost = cost;
+            bestTSP = tsp;
+        }
+    }
+    return bestTSP;
 }

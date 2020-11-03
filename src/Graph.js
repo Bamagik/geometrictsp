@@ -10,7 +10,7 @@ import {
     LineSeries
 } from 'react-vis'
 import { sleep } from './funcs';
-import { eccentricEllipseTSP, largestAngleTSP } from './tsp';
+import { eccentricEllipseTSP, largestAngleTSP, nearestNeighborTSP } from './tsp';
 
 function getRandomInt(max) {
     return Math.floor(Math.random() * Math.floor(max));
@@ -34,7 +34,9 @@ export default class Graph extends React.Component {
     startTSPCalculation = async () => {
         await sleep(500);
         // const tsp = await largestAngleTSP(this.state.data, (currentTSP) => this.setState({tsp: currentTSP}));
-        const tsp = await eccentricEllipseTSP(this.state.data, (currentTSP) => this.setState({tsp: currentTSP}));
+        // const tsp = await eccentricEllipseTSP(this.state.data, (currentTSP) => this.setState({tsp: currentTSP}));
+        const tsp = await nearestNeighborTSP(this.state.data, (currentTSP) => this.setState({tsp: currentTSP}));
+        
         this.setState({tsp});
     }
 
