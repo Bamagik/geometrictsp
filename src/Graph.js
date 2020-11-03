@@ -10,14 +10,14 @@ import {
     LineSeries
 } from 'react-vis'
 import { sleep } from './funcs';
-import { eccentricEllipseTSP, largestAngleTSP, nearestNeighborTSP } from './tsp';
+import { eccentricEllipseTSP, largestAngleTSP, nearestNeighborMultiTSP, nearestNeighborTSP } from './tsp';
 
-function getRandomInt(max) {
-    return Math.floor(Math.random() * Math.floor(max));
+function getRandomValue(max) {
+    return Math.random() * max;
 }
 
 function generateRandomData(count, max) {
-    return Array.from(Array(count)).map(() => ({x: getRandomInt(max), y: getRandomInt(max)}));
+    return Array.from(Array(count)).map(() => ({x: getRandomValue(max), y: getRandomValue(max)}));
 }
 
 export default class Graph extends React.Component {
@@ -35,8 +35,9 @@ export default class Graph extends React.Component {
         await sleep(500);
         // const tsp = await largestAngleTSP(this.state.data, (currentTSP) => this.setState({tsp: currentTSP}));
         // const tsp = await eccentricEllipseTSP(this.state.data, (currentTSP) => this.setState({tsp: currentTSP}));
-        const tsp = await nearestNeighborTSP(this.state.data, (currentTSP) => this.setState({tsp: currentTSP}));
-        
+        // const tsp = await nearestNeighborTSP(this.state.data, (currentTSP) => this.setState({tsp: currentTSP}));
+        const tsp = await nearestNeighborMultiTSP(this.state.data, (currentTSP) => this.setState({tsp: currentTSP}));
+
         this.setState({tsp});
     }
 

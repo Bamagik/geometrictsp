@@ -1,3 +1,4 @@
+import { kdTree } from 'kd-tree-javascript';
 import { sleep } from './funcs';
 
 const math = require('mathjs');
@@ -211,4 +212,111 @@ export async function nearestNeighborTSP(points, updateFunc) {
         }
     }
     return bestTSP;
+}
+
+/**
+ * 
+ * @param {Array} points 
+ * @param {*} updateFunc 
+ */
+export async function nearestNeighborMultiTSP(points, updateFunc) {
+    let degree = Array(points.length).fill(0);
+    let tail = Array(points.length).fill(-1);
+    let nnlink = [];
+    let pq = [];
+
+    for (const idx in points) {
+        let remainingPoints = points.slice();
+        remainingPoints.splice(idx, 1);
+        nnlink.push(new kdTree(remainingPoints, calculateDistance, ["x", "y"]));
+        pq.push({nn: nnlink[idx].nearest(points[idx], 1)[0], idx: Number(idx)})
+    }
+
+    let edges = []
+
+    let X, Y, nn = null;
+
+    while (edges.length < points.length - 1) {
+        while (true) {
+            pq = pq.sort((a, b) => a.nn[1] - b.nn[1]);
+            nn = pq[0].nn;
+            X = pq[0].idx;
+            if (degree[X] === 2) {
+                pq.splice(0, 1);
+                continue;
+            }
+            const [Ypt, thisDist] = nn;
+            Y = points.indexOf(Ypt);
+            
+            if (degree[Y] < 2 && Y !== tail[X]) {
+                break;
+            }
+            if (tail[X] !== -1) {
+                nnlink[X].remove(points[tail[X]]);
+            }
+            pq.splice(0, 1);
+            pq.push({nn: nnlink[X].nearest(points[X], 1)[0], idx: X});
+        }
+
+        edges.push([points[X], points[Y]]);
+        degree[X] += 1;
+        degree[Y] += 1;
+        if (degree[X] === 2) {
+            for (const tree of nnlink) {
+                tree.remove(points[X]);
+            }
+        }
+        if (degree[Y] === 2) {
+            for (const tree of nnlink) {
+                tree.remove(points[Y]);
+            }
+        }
+        pq.splice(0, 1);
+        pq.push({nn: nnlink[X].nearest(points[X], 1)[0], idx: X})
+
+        if (tail[X] !== -1) {
+            if (tail[Y] !== -1) {
+                tail[tail[X]] = tail[Y];
+                tail[tail[Y]] = tail[X];
+            } else {
+                tail[tail[X]] = Y;
+                tail[Y] = tail[X];
+            }
+        } else {
+            if (tail[Y] !== -1) {
+                tail[X] = tail[Y];
+                tail[tail[Y]] = X;
+            } else {
+                tail[X] = Y;
+                tail[Y] = X;
+            }
+        }
+    }
+
+    let tsp = [edges[0][0], edges[0][1]]
+
+    console.log(edges);
+    edges.splice(0, 1);
+
+    while (tsp.length < points.length) {
+        let i;
+        for (i in edges) {
+            const e = edges[i];
+            if (e[0] === tsp[0] && tsp[1] !== e[1]) {
+                tsp.splice(0, 0, e[1]);
+            } else if (e[1] === tsp[0] && tsp[1] !== e[0]) {
+                tsp.splice(0, 0, e[0]);
+            } else if (e[0] === tsp[tsp.length - 1] && tsp[tsp.length - 2] !== e[1]) {
+                tsp.push(e[1]);
+            } else if (e[1] === tsp[tsp.length - 1] && tsp[tsp.length - 2] !== e[0]) {
+                tsp.push(e[0]);
+            } else {
+                continue;
+            }
+            break;
+        }
+        edges.splice(i, 1);
+    }
+
+    return tsp;
 }
