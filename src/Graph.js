@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from 'react-bootstrap';
+import { Button, Form } from 'react-bootstrap';
 import {
     XYPlot,
     XAxis,
@@ -25,24 +25,32 @@ export default class Graph extends React.Component {
         super(props);
 
         this.state = {
+            formula: eccentricEllipseTSP.name,
             data: generateRandomData(props.count, props.max),
             tsp: [],
-            lines: []
+            lines: [],
         }
     }
 
     startTSPCalculation = async () => {
-        await sleep(500);
-        // const tsp = await largestAngleTSP(this.state.data, (currentTSP) => this.setState({tsp: currentTSP}));
-        // const tsp = await eccentricEllipseTSP(this.state.data, (currentTSP) => this.setState({tsp: currentTSP}));
-        // const tsp = await nearestNeighborTSP(this.state.data, (currentTSP) => this.setState({tsp: currentTSP}));
-        const tsp = await nearestNeighborMultiTSP(this.state.data, (currentTSP) => this.setState({tsp: currentTSP}));
+        const {formula} = this.state;
+        let tsp = [];
+
+        if (formula === largestAngleTSP.name) {
+            tsp = await largestAngleTSP(this.state.data, (currentTSP) => this.setState({tsp: currentTSP}));
+        } else if (formula === eccentricEllipseTSP.name) {
+            tsp = await eccentricEllipseTSP(this.state.data, (currentTSP) => this.setState({tsp: currentTSP}));
+        } else if (formula === nearestNeighborTSP.name) {
+            tsp = await nearestNeighborTSP(this.state.data, (currentTSP) => this.setState({tsp: currentTSP}));
+        } else if (formula === nearestNeighborMultiTSP.name) {
+            tsp = await nearestNeighborMultiTSP(this.state.data, (currentTSP) => this.setState({tsp: currentTSP}));
+        }
 
         this.setState({tsp});
     }
 
     getNewData = () => {
-        this.setState({data: generateRandomData(this.props.count, this.props.max), tsp: 0}, this.startTSPCalculation)
+        this.setState({data: generateRandomData(this.props.count, this.props.max), tsp: 0})
 
         // let data = [
         //     {
@@ -131,7 +139,7 @@ export default class Graph extends React.Component {
     
     render() {
         const {max} = this.props;
-        const {tsp, data} = this.state
+        const {tsp, data, formula} = this.state
 
         return <div>
             <XYPlot width={300} height={300}
@@ -152,6 +160,18 @@ export default class Graph extends React.Component {
                 />
             </XYPlot>
             <Button onClick={this.getNewData}>Randomize Points</Button>
+            <Form.Control
+                value={formula}
+                onChange={(event) => this.setState({formula: event.target.value})}
+                as='select' 
+                custom 
+            >
+                <option value={eccentricEllipseTSP.name}>Most Eccentric Ellipse</option>
+                <option value={largestAngleTSP.name}>Largest Angle</option>
+                <option value={nearestNeighborTSP.name}>Nearest Neighbor</option>
+                <option value={nearestNeighborMultiTSP.name}>Multi-ended Nearest Neighbor</option>
+            </Form.Control>
+            <Button onClick={this.startTSPCalculation}>Run TSP</Button>
         </div>
     }
 }
