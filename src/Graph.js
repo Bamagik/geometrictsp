@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button, Form } from 'react-bootstrap';
+import RangeSlider from 'react-bootstrap-range-slider';
 import {
     XYPlot,
     XAxis,
@@ -11,6 +12,8 @@ import {
 } from 'react-vis'
 import { sleep } from './funcs';
 import { eccentricEllipseTSP, largestAngleTSP, nearestNeighborMultiTSP, nearestNeighborTSP } from './tsp';
+
+const INITIAL_COUNT = 20;
 
 function getRandomValue(max) {
     return Math.random() * max;
@@ -26,9 +29,10 @@ export default class Graph extends React.Component {
 
         this.state = {
             formula: eccentricEllipseTSP.name,
-            data: generateRandomData(props.count, props.max),
+            data: generateRandomData(INITIAL_COUNT, INITIAL_COUNT),
             tsp: [],
             lines: [],
+            count: INITIAL_COUNT
         }
     }
 
@@ -50,101 +54,33 @@ export default class Graph extends React.Component {
     }
 
     getNewData = () => {
-        this.setState({data: generateRandomData(this.props.count, this.props.max), tsp: 0})
+        this.setState({data: generateRandomData(this.state.count, this.state.count), tsp: 0})
+    }
 
-        // let data = [
-        //     {
-        //       "x": 0,
-        //       "y": 13
-        //     },
-        //     {
-        //       "x": 1,
-        //       "y": 9
-        //     },
-        //     {
-        //       "x": 1,
-        //       "y": 8
-        //     },
-        //     {
-        //       "x": 2,
-        //       "y": 19
-        //     },
-        //     {
-        //       "x": 2,
-        //       "y": 12
-        //     },
-        //     {
-        //       "x": 4,
-        //       "y": 0
-        //     },
-        //     {
-        //       "x": 5,
-        //       "y": 13
-        //     },
-        //     {
-        //       "x": 6,
-        //       "y": 9
-        //     },
-        //     {
-        //       "x": 6,
-        //       "y": 8
-        //     },
-        //     {
-        //       "x": 6,
-        //       "y": 7
-        //     },
-        //     {
-        //       "x": 7,
-        //       "y": 7
-        //     },
-        //     {
-        //       "x": 9,
-        //       "y": 2
-        //     },
-        //     {
-        //       "x": 10,
-        //       "y": 9
-        //     },
-        //     {
-        //       "x": 10,
-        //       "y": 1
-        //     },
-        //     {
-        //       "x": 10,
-        //       "y": 12
-        //     },
-        //     {
-        //       "x": 11,
-        //       "y": 6
-        //     },
-        //     {
-        //       "x": 11,
-        //       "y": 7
-        //     },
-        //     {
-        //       "x": 12,
-        //       "y": 8
-        //     },
-        //     {
-        //       "x": 15,
-        //       "y": 13
-        //     },
-        //     {
-        //       "x": 19,
-        //       "y": 15
-        //     }
-        //   ]
-        // this.setState({data})
+    addDataPoints = (count) => {
+        this.setState((state, _) => ({data: state.data.concat(generateRandomData(count - state.data.length, state.count))}))
+    }
+
+    removeDataPoints = (count) => {
+        this.setState((state, _) => ({data: state.data.slice(0, state.data.length - count)}))
+    }
+
+    updateCount = (count) => {
+        if (count < this.state.count) {
+            this.removeDataPoints(count);
+        } else {
+            this.addDataPoints(count);
+        }
+        this.setState({count, tsp: [], lines: []});
     }
     
     render() {
-        const {max} = this.props;
-        const {tsp, data, formula} = this.state
+        const {tsp, data, formula, count} = this.state
 
         return <div>
             <XYPlot width={300} height={300}
-                xDomain={[0-max/10, max+max/10]}
-                yDomain={[0-max/10, max+max/10]}
+                xDomain={[0-count/10, count+count/10]}
+                yDomain={[0-count/10, count+count/10]}
             >
                 <VerticalGridLines />
                 <HorizontalGridLines />
@@ -171,6 +107,11 @@ export default class Graph extends React.Component {
                 <option value={nearestNeighborTSP.name}>Nearest Neighbor</option>
                 <option value={nearestNeighborMultiTSP.name}>Multi-ended Nearest Neighbor</option>
             </Form.Control>
+            <RangeSlider 
+                value={count}
+                onChange={(e) => this.updateCount(Number(e.target.value))}
+                tooltip='on'
+            />
             <Button onClick={this.startTSPCalculation}>Run TSP</Button>
         </div>
     }
