@@ -1,4 +1,5 @@
 import { kdTree } from 'kd-tree-javascript';
+import { range } from 'mathjs';
 import { sleep } from './funcs';
 
 const math = require('mathjs');
@@ -14,6 +15,17 @@ function calculateAngle(p, q, r) {
     const v2 = [r.x - p.x, r.y - p.y]
 
     return math.acos( math.divide(math.dot(v1, v2), (math.norm(v1) * math.norm(v2) ) ) )
+}
+
+export function calculateCost(tsp) {
+    let cost = 0;
+    for (const idx in tsp) {
+        const p = tsp[idx];
+        const q = tsp[(idx === '0' ? tsp.length : idx) - 1]
+
+        cost += calculateDistance(p, q);
+    }
+    return cost
 }
 
 function calculateEccentricity(p, q, r) {
@@ -199,13 +211,7 @@ export async function nearestNeighborTSP(points, updateFunc) {
                 await sleep(timeoutms/3);
             }
         }
-        let cost = 0;
-        for (const idx in tsp) {
-            const p = tsp[idx];
-            const q = tsp[(idx === '0' ? tsp.length : idx) - 1]
-
-            cost += calculateDistance(p, q);
-        }
+        const cost = calculateCost(tsp)
         if (cost < bestCost) {
             bestCost = cost;
             bestTSP = tsp;
@@ -217,7 +223,7 @@ export async function nearestNeighborTSP(points, updateFunc) {
 /**
  * 
  * @param {Array} points 
- * @param {*} updateFunc 
+ * @param {Function} updateFunc 
  */
 export async function nearestNeighborMultiTSP(points, updateFunc) {
     let degree = Array(points.length).fill(0);
@@ -319,4 +325,68 @@ export async function nearestNeighborMultiTSP(points, updateFunc) {
     }
 
     return tsp;
+}
+
+/**
+ * 
+ * @param {Array} points 
+ * @param {Function} updateFunc 
+ */
+export async function nearestAddition(points, updateFunc) {
+    let bestCost = Infinity;
+    let bestTSP = null;
+
+    for (let idx in points) {
+        const sp = points[idx];
+
+        let remainingPoints = points.slice();
+        remainingPoints.splice(idx, 1);
+
+        let tree = new kdTree(remainingPoints, calculateDistance, ['x', 'y']);
+        let nnout = new Array(points.length);
+        nnout[idx] = tree.nearest(sp, 1)[0]
+        let pq = [{nn: nnout[idx], idx: Number(idx)}]
+
+        let tsp = [sp];
+        let tspIdxs = [idx];
+
+        for (let i in range(0, points.length-2)) {
+            let Y;
+
+            while (true) {
+                pq = pq.sort((a, b) => a.nn[1] - b.nn[1]);
+
+                const nn = pq[0].nn;
+                const X = pq[0].idx;    
+                const [Ypt, thisDist] = nn;
+
+                Y = points.indexOf(Ypt);
+
+                if (Ypt in tsp) {
+                    nnout[X] = tree.nearest(points[X], 1)[0];
+                    pq.append({nn: nnout[X], idx: X});
+                } else {
+                    break;
+                }
+            }
+
+            tsp.append(points[Y]);
+            tspIdxs.append(Y);
+
+            if (tsp.length !== points.length - 1) {
+                remainingPoints.pop(remainingPoints.indexOf(points[Y]));
+                tree.remove(points[Y]);
+                nnout[Y] = tree.nearest(points[Y]);
+                pq.append({nn: nnout[Y], idx: Y});
+            } else {
+                tsp.append(remainingPoints[0])
+            }
+        }
+        const cost = calculateCost(tsp);
+        if (cost < bestCost) {
+            bestCost = cost;
+            bestTSP = tsp;
+        }
+    }
+    return bestTSP;
 }

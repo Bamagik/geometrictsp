@@ -1,3 +1,19 @@
 {
-    "largestAngle": ""
+    "largestAngleTSP": 
+        [
+            "This method starts with finding the convex hull of the set of points.",
+            "From there we look at all the interal points starting from left to right,",
+            "and calculate between which existing points in the convex hull has the largest angle to the given point. [1]"
+        ],
+    "eccentricEllipseTSP":
+        [
+            "This method starts with finding the convex hull of the set of points.",
+            "From there we look at all the internal points starting from left to right,",
+            "and calculate between which existing points in the convex hull has teh most eccentric ellipse",
+            "with respect to the given point. [1]"
+        ],
+    "nearestNeighborTSP":
+        [],
+    "nearestNeighborMultiTSP":
+        []
 }

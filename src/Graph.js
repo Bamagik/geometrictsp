@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Form } from 'react-bootstrap';
+import { Button, Col, Form, Row } from 'react-bootstrap';
 import RangeSlider from 'react-bootstrap-range-slider';
 import {
     XYPlot,
@@ -8,10 +8,12 @@ import {
     HorizontalGridLines,
     VerticalGridLines,
     MarkSeries,
-    LineSeries
+    LineSeries,
+    FlexibleWidthXYPlot
 } from 'react-vis'
 import { sleep } from './funcs';
-import { eccentricEllipseTSP, largestAngleTSP, nearestNeighborMultiTSP, nearestNeighborTSP } from './tsp';
+import { calculateCost, eccentricEllipseTSP, largestAngleTSP, nearestNeighborMultiTSP, nearestNeighborTSP } from './tsp';
+import explanations from './explanations.json'
 
 const INITIAL_COUNT = 20;
 
@@ -32,22 +34,34 @@ export default class Graph extends React.Component {
             data: generateRandomData(INITIAL_COUNT, INITIAL_COUNT),
             tsp: [],
             lines: [],
+            bestCost: 0,
             count: INITIAL_COUNT
         }
+    }
+
+    internalUpdate = async (tsp, bestCost=0, lines=[]) => {
+        await this.setState({tsp, bestCost, lines});
     }
 
     startTSPCalculation = async () => {
         const {formula} = this.state;
         let tsp = [];
 
-        if (formula === largestAngleTSP.name) {
-            tsp = await largestAngleTSP(this.state.data, (currentTSP) => this.setState({tsp: currentTSP}));
-        } else if (formula === eccentricEllipseTSP.name) {
-            tsp = await eccentricEllipseTSP(this.state.data, (currentTSP) => this.setState({tsp: currentTSP}));
-        } else if (formula === nearestNeighborTSP.name) {
-            tsp = await nearestNeighborTSP(this.state.data, (currentTSP) => this.setState({tsp: currentTSP}));
-        } else if (formula === nearestNeighborMultiTSP.name) {
-            tsp = await nearestNeighborMultiTSP(this.state.data, (currentTSP) => this.setState({tsp: currentTSP}));
+        switch (formula) {
+            case largestAngleTSP.name:
+                tsp = await largestAngleTSP(this.state.data, this.internalUpdate);
+                break;
+            case eccentricEllipseTSP.name:
+                tsp = await eccentricEllipseTSP(this.state.data, this.internalUpdate);
+                break;
+            case nearestNeighborTSP.name:
+                tsp = await nearestNeighborTSP(this.state.data, this.internalUpdate);
+                break;
+            case nearestNeighborMultiTSP.name:
+                tsp = await nearestNeighborMultiTSP(this.state.data, this.internalUpdate);
+                break;
+            default:
+                tsp = []
         }
 
         this.setState({tsp});
@@ -75,10 +89,10 @@ export default class Graph extends React.Component {
     }
     
     render() {
-        const {tsp, data, formula, count} = this.state
+        const {tsp, data, formula, count, bestCost, lines} = this.state
 
         return <div>
-            <XYPlot width={300} height={300}
+            <FlexibleWidthXYPlot height={300}
                 xDomain={[0-count/10, count+count/10]}
                 yDomain={[0-count/10, count+count/10]}
             >
@@ -94,25 +108,48 @@ export default class Graph extends React.Component {
                     data={tsp.length ? tsp.concat(tsp[0]) : []}
                     animation
                 />
-            </XYPlot>
-            <Button onClick={this.getNewData}>Randomize Points</Button>
-            <Form.Control
-                value={formula}
-                onChange={(event) => this.setState({formula: event.target.value})}
-                as='select' 
-                custom 
-            >
-                <option value={eccentricEllipseTSP.name}>Most Eccentric Ellipse</option>
-                <option value={largestAngleTSP.name}>Largest Angle</option>
-                <option value={nearestNeighborTSP.name}>Nearest Neighbor</option>
-                <option value={nearestNeighborMultiTSP.name}>Multi-ended Nearest Neighbor</option>
-            </Form.Control>
+            </FlexibleWidthXYPlot>
+            <Row>
+                <Col>
+                    Best Cost: 
+                    
+                    {bestCost}
+                </Col>
+                <Col>
+                    Current Cost: 
+                    
+                    {calculateCost(tsp).toFixed(2)}
+                </Col>
+            </Row>
+
             <RangeSlider 
                 value={count}
                 onChange={(e) => this.updateCount(Number(e.target.value))}
                 tooltip='on'
             />
-            <Button onClick={this.startTSPCalculation}>Run TSP</Button>
+            <br/>
+            <Button className="my-3" onClick={this.getNewData}>Randomize Points</Button>
+            <Form.Row noGutters>
+                <Col>
+                    <Form.Control
+                        value={formula}
+                        onChange={(event) => this.setState({formula: event.target.value})}
+                        as='select' 
+                        custom
+                    >
+                        <option value={eccentricEllipseTSP.name}>Most Eccentric Ellipse</option>
+                        <option value={largestAngleTSP.name}>Largest Angle</option>
+                        <option value={nearestNeighborTSP.name}>Nearest Neighbor</option>
+                        <option value={nearestNeighborMultiTSP.name}>Multi-ended Nearest Neighbor</option>
+                    </Form.Control>
+                </Col>
+                <Col>
+                    <Button onClick={this.startTSPCalculation}>Run TSP</Button>
+                </Col>
+                <p class="pt-4 text-left">
+                    {explanations[formula].join(" ")}
+                </p>
+            </Form.Row>
         </div>
     }
 }
