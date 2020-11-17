@@ -2,11 +2,13 @@
   "name": "app",
   "version": "0.1.0",
   "private": true,
+  "homepage": "http://bamagik.github.io/geometrictsp",
   "dependencies": {
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
     "bootstrap": "^4.5.3",
+    "gh-pages": "^3.1.0",
     "kd-tree-javascript": "^1.0.3",
     "mathjs": "^7.6.0",
     "react": "^17.0.1",
@@ -19,7 +21,9 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "predeploy": "react-scripts build",
+    "deploy": "gh-pages -d build",
+    "build": "yarn predeploy & yarn deploy",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
