@@ -53,7 +53,7 @@ def largest_angle_tsp(points):
     difference = list(set(points).difference(set(hull)))
     difference.sort(key=lambda p: p[0]) # sort by x
 
-    print(difference)
+    # print(difference)
 
     for p in difference:
         largest_angle = -np.inf
