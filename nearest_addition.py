@@ -2,9 +2,36 @@ import numpy as np
 from matplotlib import pyplot as plot
 import nearest_neighbor as nn
 from scipy.spatial import KDTree
+from utils import tour_cost
+
+ADD_RAD = 2
 
 def distance(p1: tuple, p2: tuple):
     return np.linalg.norm(np.array(p1) - np.array(p2))
+
+
+def find_best_insertion_point(Y: tuple, R: float, tsp: list):
+    tree = KDTree(tsp)
+
+    idxs = tree.query_ball_point(Y, R * ADD_RAD)
+
+    best_cost = np.inf
+    best_idx = None
+
+    # print(idxs, Y, R, tsp)
+
+    for idx in idxs:
+        P = tsp[idx]
+        Q = tsp[idx - 1]
+
+        cost = distance(P, Y) + distance(Y, Q)
+        
+        if cost < best_cost:
+            best_idx = idx
+            best_cost = cost
+
+    return best_idx
+
 
 def random_addition(points: list):
     np.random.shuffle(points)
@@ -15,48 +42,50 @@ def random_addition(points: list):
     sp = points[0]
     idx = 0
 
-    for idx, sp in enumerate(points):
-        tsp = [sp]
+    # for idx, sp in enumerate(points):
+    tsp = [sp]
+    tree = KDTree(tsp)
+    remaining_points = points.copy()
+    remaining_points.pop(idx)
+
+    for i in range(len(points) - 1):
+        pointY = remaining_points.pop(0)
+        thisdist, X = tree.query(pointY)
+
+        # prevdist = np.inf
+        # nextdist = np.inf
+        # if len(tsp) > 1:
+        #     prevdist = nn.distance(tsp[X-1], pointY)
+        #     if X == len(tsp) - 1:
+        #         nextdist = nn.distance(tsp[len(tsp) - 1 - X], pointY)
+        #     else:
+        #         nextdist = nn.distance(tsp[X+1], pointY)
+
+        # insert_idx = 0
+        # if prevdist <= nextdist:
+        #     if X != 0:
+        #         insert_idx = X - 1
+        #     else:
+        #         insert_idx = len(tsp)
+        # else:
+        #     if X != len(tsp) - 1:
+        #         insert_idx = X + 1
+        #     else:
+        #         insert_idx = 0
+
+        insert_idx = find_best_insertion_point(pointY, thisdist, tsp)
+        tsp.insert(insert_idx, pointY)
         tree = KDTree(tsp)
-        remaining_points = points.copy()
-        remaining_points.pop(idx)
 
-        for i in range(len(points) - 1):
-            Y = 0
-            pointY = remaining_points.pop(0)
-            thisdist, X = tree.query(pointY)
-
-            prevdist = np.inf
-            nextdist = np.inf
-            if len(tsp) > 1:
-                prevdist = nn.distance(tsp[X-1], pointY)
-                if X == len(tsp) - 1:
-                    nextdist = nn.distance(tsp[len(tsp) - 1 - X], pointY)
-                else:
-                    nextdist = nn.distance(tsp[X+1], pointY)
-
-            insert_idx = 0
-            if prevdist <= nextdist:
-                if X != 0:
-                    insert_idx = X - 1
-                else:
-                    insert_idx = len(tsp)
-            else:
-                if X != len(tsp) - 1:
-                    insert_idx = X + 1
-                else:
-                    insert_idx = 0
-            tsp.insert(insert_idx, pointY)
-            tree = KDTree(tsp)
-        cost = 0
-        for idx, p in enumerate(tsp):
-            cost += distance(p, tsp[idx-1])
-        if cost < best_cost:
-            best_cost = cost
-            best_tsp = tsp
-            # print(start_pt)
+    cost = tour_cost(tsp)
+    
+    # print(cost)
+    if cost < best_cost:
+        best_cost = cost
+        best_tsp = tsp
+        # print(start_pt)
         
-    # print(tsp)    
+    # print(best_cost)    
     return best_tsp    
     
 
@@ -64,43 +93,49 @@ def farthest_addition(points: list):
     best_cost = np.inf
     best_tsp = None
 
-    for idx, sp in enumerate(points):
-        tsp = [sp]
+    np.random.shuffle(points)
+    # points.sort(key=lambda p: p[0])
+    idx = 0
+    sp = points[idx]
+
+    # for idx, sp in enumerate(points):
+    tsp = [sp]
+    tree = KDTree(tsp)
+
+    nnin = [None] * len(points)
+    pq = []
+
+    for i in range(len(points)):
+        if i != idx:
+            nnin[i] = 0
+            pq.append((nn.distance(points[i], sp), i))
+
+    for i in range(len(points) - 1):
+        while True:
+            pq.sort(key=lambda p: p[0])
+            thisdist, Y = pq[0]
+            oldx = nnin[Y]
+            nnin[Y] = tree.query(points[Y])[1]
+            nnin[Y] = points.index(tuple(tree.data[nnin[Y]]))
+            x = nnin[Y]
+            if x == oldx:
+                break
+            
+        insert_idx = find_best_insertion_point(points[Y], thisdist, tsp)
+        tsp.insert(insert_idx, points[Y])
+
         tree = KDTree(tsp)
+        pq.pop(0)
 
-        nnin = [None] * len(points)
-        pq = []
+    cost = tour_cost(tsp)
 
-        for i in range(len(points)):
-            if i != idx:
-                nnin[i] = 0
-                pq.append((nn.distance(points[i], sp), i))
+    # print(cost)
 
-        for i in range(len(points) - 1):
-            while True:
-                pq.sort(key=lambda p: p[0])
-                thisdist, Y = pq[0]
-                oldx = nnin[Y]
-                nnin[Y] = tree.query(points[Y])[1]
-                nnin[Y] = points.index(tuple(tree.data[nnin[Y]]))
-                x = nnin[Y]
-                if x == oldx:
-                    break
-            tsp.append(points[Y])
-            tree = KDTree(tsp)
-            pq.pop(0)
-
-        cost = 0
-        for idx, p in enumerate(tsp):
-            cost += distance(p, tsp[idx-1])
-
-        # print(cost)
-
-        if cost < best_cost:
-            best_cost = cost
-            best_tsp = tsp
+    if cost < best_cost:
+        best_cost = cost
+        best_tsp = tsp
     
-    # print(tsp)        
+    # print(best_cost)        
     return best_tsp
 
 
@@ -108,46 +143,54 @@ def nearest_addition(points: list):
     best_cost = np.inf
     best_tsp = None
 
-    for idx, sp in enumerate(points):
-        remaining_points = points.copy()
-        remaining_points.pop(idx)
+    np.random.shuffle(points)
+    # points.sort(key=lambda p: p[0])
+    idx = 0
+    sp = points[idx]
 
-        tree = KDTree(remaining_points)
-        nnout = [None] * len(points)
-        nnout[idx] = tree.query(sp)
-        pq = [(nnout[idx][0], idx)]
+    # for idx, sp in enumerate(points):
+    remaining_points = points.copy()
+    remaining_points.pop(idx)
+
+    tree = KDTree(remaining_points)
+    nnout = [None] * len(points)
+    nnout[idx] = tree.query(sp)
+    pq = [(nnout[idx][0], idx)]
+
+    tsp = [sp]
+    tsp_idxs = [idx]
+    for i in range(len(points)-1):
+        while True:
+            pq.sort(key=lambda p: p[0])
+            thisdist, X = pq[0]
+            Y = nnout[X][1]
+            Y = points.index(remaining_points[Y])
+            if points[Y] not in tsp:
+                break
+            nnout[X] = tree.query(points[X])
+            pq.pop(0)
+            pq.append((nnout[X][0], X))
+
+        insert_idx = find_best_insertion_point(points[Y], thisdist, tsp)
+        tsp.insert(insert_idx, points[Y])
+        tsp_idxs.append(Y)
+
+        if len(tsp_idxs) != len(points):
+            remaining_points = nn.copy_and_filter(points, tsp_idxs)
+            tree = KDTree(remaining_points)
+
+            pq = []
+            for idx in tsp_idxs:
+                nnout[idx] = tree.query(points[idx])
+                pq.append((nnout[idx][0], idx))
+
+    cost = tour_cost(tsp)
+
+    if cost < best_cost:
+        best_cost = cost
+        best_tsp = tsp
     
-        tsp = [sp]
-        tsp_idxs = [idx]
-        for i in range(len(points)-2):
-            while True:
-                pq.sort(key=lambda p: p[0])
-                thisdist, X = pq[0]
-                Y = nnout[X][1]
-                if Y < len(tree.data):
-                    Y = points.index(tuple(tree.data[Y]))
-                    if points[Y] not in tsp:
-                        break
-                nnout[X] = tree.query(points[X])
-                pq.append((nnout[X][0], X))
-            tsp.append(points[Y])
-            tsp_idxs.append(Y)
-
-            if len(tsp_idxs) != len(points) - 1:
-                tree = KDTree(nn.copy_and_filter(points, tsp_idxs))
-                nnout[Y] = tree.query(points[Y])
-                pq.append((nnout[Y][0], Y))
-            else:
-                tsp.append(nn.copy_and_filter(points, tsp_idxs)[0])
-
-        cost = 0
-        for idx, p in enumerate(tsp):
-            cost += distance(p, tsp[idx-1])
-        if cost < best_cost:
-            best_cost = cost
-            best_tsp = tsp
-    
-    # print(tsp)        
+    # print(best_cost)
     return best_tsp
 
 

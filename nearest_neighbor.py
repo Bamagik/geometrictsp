@@ -103,21 +103,24 @@ def nearest_neighbour_double_ended(points: list):
         while len(tsp) != len(points):
             best_dist = np.inf
             best_pt_idx = None
-            best_endpt = None
-            for endpoint in [tsp[0], tsp[-1]]:
-                for idx, p in enumerate(remaining_points):
-                    dist = distance(p, endpoint)
-                    if dist < best_dist:
-                        best_dist = dist
-                        best_pt_idx = idx
-                        best_endpt = endpoint
+            best_endpt_idx = None
 
-            endpt_idx = tsp.index(best_endpt)
-            if endpt_idx == 0:
-                tsp.insert(endpt_idx, remaining_points[best_pt_idx])
+            tree = KDTree(remaining_points)
+
+            for endpt_idx, endpoint in enumerate([tsp[0], tsp[-1]]):
+                dist, idx = tree.query(endpoint)
+
+                if dist < best_dist:
+                    best_dist = dist
+                    best_pt_idx = idx
+                    best_endpt_idx = endpt_idx
+
+            best_pt = remaining_points.pop(best_pt_idx)
+            if best_endpt_idx == 0:
+                tsp.insert(endpt_idx, best_pt)
             else:
-                tsp.append(remaining_points[best_pt_idx])
-            remaining_points.pop(best_pt_idx)
+                tsp.append(best_pt)
+                
         cost = 0
         for idx, p in enumerate(tsp):
             cost += distance(p, tsp[idx-1])
@@ -137,15 +140,17 @@ def nearest_neighbour(points: list):
         remaining_points = points.copy()
         remaining_points.pop(start_idx)
         while len(tsp) != len(points):
-            best_dist = np.inf
-            best_pt_idx = None
-            for idx, p in enumerate(remaining_points):
-                dist = distance(p, tsp[-1])
-                if dist < best_dist:
-                    best_dist = dist
-                    best_pt_idx = idx
-            tsp.append(remaining_points[best_pt_idx])
-            remaining_points.pop(best_pt_idx)
+            # best_dist = np.inf
+            # best_pt_idx = None
+            # for idx, p in enumerate(remaining_points):
+            #     dist = distance(p, tsp[-1])
+            #     if dist < best_dist:
+            #         best_dist = dist
+            #         best_pt_idx = idx
+            tree = KDTree(remaining_points)
+            thisdist, X = tree.query(tsp[-1])
+            tsp.append(remaining_points[X])
+            remaining_points.pop(X)
         cost = 0
         for idx, p in enumerate(tsp):
             cost += distance(p, tsp[idx-1])
