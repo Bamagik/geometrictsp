@@ -12,7 +12,7 @@ import {
     FlexibleWidthXYPlot
 } from 'react-vis'
 import { sleep } from './funcs';
-import { calculateCost, eccentricEllipseTSP, largestAngleTSP, nearestNeighborMultiTSP, nearestNeighborTSP } from './tsp';
+import { calculateCost, eccentricEllipseTSP, largestAngleTSP, nearestNeighborMultiTSP, nearestNeighborTSP, nearestAdditionTSP } from './tsp';
 import explanations from './explanations.json'
 
 const INITIAL_COUNT = 20;
@@ -35,7 +35,8 @@ export default class Graph extends React.Component {
             tsp: [],
             lines: [],
             bestCost: 0,
-            count: INITIAL_COUNT
+            count: INITIAL_COUNT,
+            running: false
         }
     }
 
@@ -46,6 +47,8 @@ export default class Graph extends React.Component {
     startTSPCalculation = async () => {
         const {formula} = this.state;
         let tsp = [];
+
+        this.setState({running: true})
 
         switch (formula) {
             case largestAngleTSP.name:
@@ -64,7 +67,7 @@ export default class Graph extends React.Component {
                 tsp = []
         }
 
-        this.setState({tsp});
+        this.setState({tsp, lines: [], running: false});
     }
 
     getNewData = () => {
@@ -89,7 +92,7 @@ export default class Graph extends React.Component {
     }
     
     render() {
-        const {tsp, data, formula, count, bestCost, lines} = this.state
+        const {tsp, data, formula, count, bestCost, lines, running} = this.state
 
         return <div>
             <FlexibleWidthXYPlot height={300}
@@ -106,18 +109,26 @@ export default class Graph extends React.Component {
                 />
                 <LineSeries
                     data={tsp.length ? tsp.concat(tsp[0]) : []}
-                    animation
                 />
+                {lines.map(line => (
+                    <LineSeries
+                        key={JSON.stringify(line)}
+                        data={line}
+                        style={{
+                            stroke: 'pink',
+                            strokeWidth: 5
+                        }}
+                    />
+                    )
+                )}
             </FlexibleWidthXYPlot>
             <Row>
                 <Col>
-                    Best Cost: 
-                    
-                    {bestCost}
+                    {"Best Cost: "} 
+                    {bestCost.toFixed(2)}
                 </Col>
                 <Col>
-                    Current Cost: 
-                    
+                    {"Current Cost: "} 
                     {calculateCost(tsp).toFixed(2)}
                 </Col>
             </Row>
@@ -144,7 +155,7 @@ export default class Graph extends React.Component {
                     </Form.Control>
                 </Col>
                 <Col>
-                    <Button onClick={this.startTSPCalculation}>Run TSP</Button>
+                    <Button onClick={this.startTSPCalculation} disabled={running}>Run TSP</Button>
                 </Col>
                 <p class="pt-4 text-left">
                     {explanations[formula].join(" ")}

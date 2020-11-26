@@ -83,7 +83,7 @@ export async function convexHull(points, updateFunc) {
     }
     hull.push(bestNextPoint);
     if (updateFunc) {
-        await updateFunc(hull);
+        await updateFunc(hull, 0, [hull.slice(hull.length - 2)]);
         await sleep(timeoutms);
     }
 
@@ -105,7 +105,7 @@ export async function convexHull(points, updateFunc) {
         }
         hull.push(bestNextPoint);
         if (updateFunc) {
-            await updateFunc(hull);
+            await updateFunc(hull, 0, [hull.slice(hull.length - 2)]);
             await sleep(timeoutms);
         }
     }
@@ -123,9 +123,11 @@ export async function largestAngleTSP(points, updateFunc) {
     difference = difference.sort((a, b) => a.x - b.x);
     // console.log(difference);
 
+    let lastLine = [];
+
     for (const p of difference) {
         if (updateFunc) {
-            await updateFunc(hull);
+            await updateFunc(hull, 0, [lastLine]);
             await sleep(timeoutms);
         }
 
@@ -142,6 +144,14 @@ export async function largestAngleTSP(points, updateFunc) {
             }
         }
         hull.splice(bestIdx, 0, p);
+
+        const r = hull[(bestIdx === '0' ? hull.length : bestIdx) - 1];
+        lastLine = [r].concat(hull.slice(Number(bestIdx), Number(bestIdx) + 2));
+    }
+
+    if (updateFunc) {
+        await updateFunc(hull, 0, [lastLine]);
+        await sleep(timeoutms);
     }
 
     return hull;
@@ -159,9 +169,11 @@ export async function eccentricEllipseTSP(points, updateFunc) {
     difference = difference.sort((a, b) => a.x - b.x);
     // console.log(difference);
 
+    let lastLine = [];
+
     for (const p of difference) {
         if (updateFunc) {
-            await updateFunc(hull);
+            await updateFunc(hull, 0, [lastLine]);
             await sleep(timeoutms);
         }
 
@@ -178,6 +190,14 @@ export async function eccentricEllipseTSP(points, updateFunc) {
             }
         }
         hull.splice(bestIdx, 0, p);
+
+        const r = hull[(bestIdx === '0' ? hull.length : bestIdx) - 1];
+        lastLine = [r].concat(hull.slice(Number(bestIdx), Number(bestIdx) + 2));
+    }
+
+    if (updateFunc) {
+        await updateFunc(hull, 0, [lastLine]);
+        await sleep(timeoutms);
     }
 
     return hull;
@@ -207,7 +227,7 @@ export async function nearestNeighborTSP(points, updateFunc) {
             remainingPoints.splice(bestIdx, 1);
 
             if (updateFunc) {
-                await updateFunc(tsp);
+                await updateFunc(tsp, bestCost, [tsp.slice(tsp.length-2)]);
                 await sleep(timeoutms/3);
             }
         }
@@ -215,6 +235,11 @@ export async function nearestNeighborTSP(points, updateFunc) {
         if (cost < bestCost) {
             bestCost = cost;
             bestTSP = tsp;
+        }
+
+        if (updateFunc) {
+            await updateFunc(tsp, bestCost, [tsp.slice(tsp.length-2)]);
+            await sleep(timeoutms/3);
         }
     }
     return bestTSP;
@@ -243,6 +268,11 @@ export async function nearestNeighborMultiTSP(points, updateFunc) {
     let X, Y, nn = null;
 
     while (edges.length < points.length - 1) {
+        if (updateFunc) {
+            await updateFunc([], 0, edges);
+            await sleep(timeoutms);
+        }
+
         while (true) {
             pq = pq.sort((a, b) => a.nn[1] - b.nn[1]);
             nn = pq[0].nn;
@@ -332,7 +362,7 @@ export async function nearestNeighborMultiTSP(points, updateFunc) {
  * @param {Array} points 
  * @param {Function} updateFunc 
  */
-export async function nearestAddition(points, updateFunc) {
+export async function nearestAdditionTSP(points, updateFunc) {
     let bestCost = Infinity;
     let bestTSP = null;
 
@@ -386,6 +416,10 @@ export async function nearestAddition(points, updateFunc) {
         if (cost < bestCost) {
             bestCost = cost;
             bestTSP = tsp;
+        }
+        if (updateFunc) {
+            await updateFunc(tsp, bestCost);
+            await sleep(timeoutms);
         }
     }
     return bestTSP;

@@ -13,7 +13,18 @@
             "with respect to the given point. [1]"
         ],
     "nearestNeighborTSP":
-        [],
+        [
+            "This method is about finding the nearest point to the end of the current cycle.",
+            "Using every point as a potential starting point, it looks for the lowest cost tour through all the points,",
+            "basing the finding of the next point by nearest neighbor approach. [2]"
+        ],
     "nearestNeighborMultiTSP":
-        []
+        [
+            "This method is an extension of the standard nearest neighbor approach.",
+            "This method adds edges from smallest to largest until a tour is achieved. [2]"
+        ],
+    "nearestAdditionTSP":
+        [
+
+        ]
 }
