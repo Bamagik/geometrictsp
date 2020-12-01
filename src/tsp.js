@@ -1,6 +1,7 @@
 import { kdTree } from 'kd-tree-javascript';
-import * as math from 'mathjs';
 import { sleep } from './funcs';
+
+const math = require('mathjs');
 
 const TIMEOUTMS = 300;
 const ADDRAD = 2
@@ -190,6 +191,7 @@ export async function largestAngleTSP(points, updateFunc) {
 
     return hull;
 }
+
 
 /**
  * 

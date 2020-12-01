@@ -9,9 +9,9 @@ import {
     MarkSeries,
     LineSeries,
     FlexibleWidthXYPlot
-} from 'react-vis'
+} from 'react-vis';
 import { calculateCost, eccentricEllipseTSP, largestAngleTSP, nearestNeighborMultiTSP, nearestNeighborTSP, nearestAdditionTSP } from './tsp';
-import explanations from './explanations.json'
+import explanations from './explanations';
 
 const INITIAL_COUNT = 20;
 
@@ -72,7 +72,7 @@ export default class Graph extends React.Component {
     }
 
     getNewData = () => {
-        // this.setState({data: generateRandomData(this.state.count, this.state.count), tsp: 0})
+        this.setState({data: generateRandomData(this.state.count, this.state.count), tsp: 0})
     }
 
     addDataPoints = (count) => {
@@ -93,7 +93,13 @@ export default class Graph extends React.Component {
     }
     
     render() {
-        const {tsp, data, formula, count, bestCost, lines, running} = this.state
+        const {tsp, data, formula, count, bestCost, lines, running} = this.state;
+
+        console.log(formula)
+
+        let explanation = explanations ? explanations[formula].join(" ") : "";
+
+        // let explanation = explanations["undefined"];
 
         return <div>
             <FlexibleWidthXYPlot height={300}
@@ -159,10 +165,10 @@ export default class Graph extends React.Component {
                 <Col>
                     <Button onClick={this.startTSPCalculation} disabled={running}>Run TSP</Button>
                 </Col>
-                <p className="pt-4 text-left">
-                    {explanations[formula].join(" ")}
-                </p>
             </Form.Row>
+            <p className="pt-4 text-left">
+                {explanation}
+            </p>
         </div>
     }
 }

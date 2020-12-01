@@ -1,4 +1,4 @@
-{
+export var explanations = {
     "largestAngleTSP": 
         [
             "This method starts with finding the convex hull of the set of points.",
@@ -29,5 +29,8 @@
             "Utilizing a KDTree, nearest addition assumes randomness in the starting points,",
             "and from those adds points based on proximity to a point in the tsp, and inserts it smartly",
             "based on where the minimum cost is in the tsp. [2]"
-        ]
-}
+        ],
+    "undefined": [ "placeholder" ]
+};
+
+export default explanations;
