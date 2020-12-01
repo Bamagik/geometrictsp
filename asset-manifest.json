@@ -1,8 +1,8 @@
 {
   "files": {
     "main.css": "/geometrictsp/static/css/main.229d0cf6.chunk.css",
-    "main.js": "/geometrictsp/static/js/main.ab7ed166.chunk.js",
-    "main.js.map": "/geometrictsp/static/js/main.ab7ed166.chunk.js.map",
+    "main.js": "/geometrictsp/static/js/main.f2311a8b.chunk.js",
+    "main.js.map": "/geometrictsp/static/js/main.f2311a8b.chunk.js.map",
     "runtime-main.js": "/geometrictsp/static/js/runtime-main.e38b6419.js",
     "runtime-main.js.map": "/geometrictsp/static/js/runtime-main.e38b6419.js.map",
     "static/css/2.0e002f46.chunk.css": "/geometrictsp/static/css/2.0e002f46.chunk.css",
@@ -20,6 +20,6 @@
     "static/css/2.0e002f46.chunk.css",
     "static/js/2.7b6b30ed.chunk.js",
     "static/css/main.229d0cf6.chunk.css",
-    "static/js/main.ab7ed166.chunk.js"
+    "static/js/main.f2311a8b.chunk.js"
   ]
 }
