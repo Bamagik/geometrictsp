@@ -1,9 +1,9 @@
 import { kdTree } from 'kd-tree-javascript';
-import { range } from 'mathjs';
+import * as math from 'mathjs';
 import { sleep } from './funcs';
 
-const math = require('mathjs');
-const timeoutms = 300;
+const TIMEOUTMS = 300;
+const ADDRAD = 2
 
 function calculateDistance(p, q) {
     const v = [p.x - q.x, p.y - q.y];
@@ -15,6 +15,40 @@ function calculateAngle(p, q, r) {
     const v2 = [r.x - p.x, r.y - p.y]
 
     return math.acos( math.divide(math.dot(v1, v2), (math.norm(v1) * math.norm(v2) ) ) )
+}
+
+function findBestInsertionPoint(Y, R, tsp) {
+    const tree = new kdTree(tsp.slice(), calculateDistance, ['x', 'y']);
+
+    let points = tree.nearest(Y, tsp.length, R * ADDRAD)
+
+    let bestCost = Infinity;
+    let bestIdx = null;
+
+    console.log(Y, tsp.slice())
+
+    points = points.sort((a, b) => tsp.indexOf(a[0]) - tsp.indexOf(b[0]))
+
+    for (let pt of points) {
+        const idx = tsp.indexOf(pt[0])
+        const P = tsp[idx]
+        const Q = tsp[(idx === 0 ? tsp.length : idx) - 1]
+
+        // console.log(P, Q)
+
+        let cost = calculateDistance(P, Y) + calculateDistance(Y, Q);
+
+        // console.log(cost)
+
+        if (cost < bestCost) {
+            bestIdx = idx;
+            bestCost = cost;
+        }
+    }
+
+    console.log(bestIdx, bestCost)
+
+    return bestIdx;
 }
 
 export function calculateCost(tsp) {
@@ -60,7 +94,7 @@ export async function convexHull(points, updateFunc) {
 
     if (updateFunc) {
         await updateFunc(hull);
-        await sleep(timeoutms);
+        await sleep(TIMEOUTMS);
     }
     
     let largestAngle = -Infinity;
@@ -84,7 +118,7 @@ export async function convexHull(points, updateFunc) {
     hull.push(bestNextPoint);
     if (updateFunc) {
         await updateFunc(hull, 0, [hull.slice(hull.length - 2)]);
-        await sleep(timeoutms);
+        await sleep(TIMEOUTMS);
     }
 
     while(hull.length < points.length) {
@@ -106,7 +140,7 @@ export async function convexHull(points, updateFunc) {
         hull.push(bestNextPoint);
         if (updateFunc) {
             await updateFunc(hull, 0, [hull.slice(hull.length - 2)]);
-            await sleep(timeoutms);
+            await sleep(TIMEOUTMS);
         }
     }
 
@@ -128,7 +162,7 @@ export async function largestAngleTSP(points, updateFunc) {
     for (const p of difference) {
         if (updateFunc) {
             await updateFunc(hull, 0, [lastLine]);
-            await sleep(timeoutms);
+            await sleep(TIMEOUTMS);
         }
 
         let largestAngle = -Infinity;
@@ -151,7 +185,7 @@ export async function largestAngleTSP(points, updateFunc) {
 
     if (updateFunc) {
         await updateFunc(hull, 0, [lastLine]);
-        await sleep(timeoutms);
+        await sleep(TIMEOUTMS);
     }
 
     return hull;
@@ -174,7 +208,7 @@ export async function eccentricEllipseTSP(points, updateFunc) {
     for (const p of difference) {
         if (updateFunc) {
             await updateFunc(hull, 0, [lastLine]);
-            await sleep(timeoutms);
+            await sleep(TIMEOUTMS);
         }
 
         let largestEcc = -Infinity;
@@ -197,7 +231,7 @@ export async function eccentricEllipseTSP(points, updateFunc) {
 
     if (updateFunc) {
         await updateFunc(hull, 0, [lastLine]);
-        await sleep(timeoutms);
+        await sleep(TIMEOUTMS);
     }
 
     return hull;
@@ -228,7 +262,7 @@ export async function nearestNeighborTSP(points, updateFunc) {
 
             if (updateFunc) {
                 await updateFunc(tsp, bestCost, [tsp.slice(tsp.length-2)]);
-                await sleep(timeoutms/3);
+                await sleep(TIMEOUTMS/3);
             }
         }
         const cost = calculateCost(tsp)
@@ -239,7 +273,7 @@ export async function nearestNeighborTSP(points, updateFunc) {
 
         if (updateFunc) {
             await updateFunc(tsp, bestCost, [tsp.slice(tsp.length-2)]);
-            await sleep(timeoutms/3);
+            await sleep(TIMEOUTMS/3);
         }
     }
     return bestTSP;
@@ -270,7 +304,7 @@ export async function nearestNeighborMultiTSP(points, updateFunc) {
     while (edges.length < points.length - 1) {
         if (updateFunc) {
             await updateFunc([], 0, edges);
-            await sleep(timeoutms);
+            await sleep(TIMEOUTMS);
         }
 
         while (true) {
@@ -363,64 +397,78 @@ export async function nearestNeighborMultiTSP(points, updateFunc) {
  * @param {Function} updateFunc 
  */
 export async function nearestAdditionTSP(points, updateFunc) {
-    let bestCost = Infinity;
-    let bestTSP = null;
+    let idx = 0;
+    const sp = points[idx];
 
-    for (let idx in points) {
-        const sp = points[idx];
+    console.log(points)
 
-        let remainingPoints = points.slice();
-        remainingPoints.splice(idx, 1);
+    let remainingPoints = points.slice();
+    remainingPoints.splice(idx, 1);
 
-        let tree = new kdTree(remainingPoints, calculateDistance, ['x', 'y']);
-        let nnout = new Array(points.length);
-        nnout[idx] = tree.nearest(sp, 1)[0]
-        let pq = [{nn: nnout[idx], idx: Number(idx)}]
+    let tree = new kdTree(remainingPoints, calculateDistance, ['x', 'y']);
+    let pq = [{nn: tree.nearest(sp, 1)[0], idx: Number(idx)}]
 
-        let tsp = [sp];
-        let tspIdxs = [idx];
+    let tsp = [sp];
+    let insertIdx = 0;
 
-        for (let i in range(0, points.length-2)) {
-            let Y;
+    while (tsp.length < points.length) {
+        let Y, thisDist, Ypt;
 
-            while (true) {
-                pq = pq.sort((a, b) => a.nn[1] - b.nn[1]);
-
-                const nn = pq[0].nn;
-                const X = pq[0].idx;    
-                const [Ypt, thisDist] = nn;
-
-                Y = points.indexOf(Ypt);
-
-                if (Ypt in tsp) {
-                    nnout[X] = tree.nearest(points[X], 1)[0];
-                    pq.append({nn: nnout[X], idx: X});
-                } else {
-                    break;
-                }
-            }
-
-            tsp.append(points[Y]);
-            tspIdxs.append(Y);
-
-            if (tsp.length !== points.length - 1) {
-                remainingPoints.pop(remainingPoints.indexOf(points[Y]));
-                tree.remove(points[Y]);
-                nnout[Y] = tree.nearest(points[Y]);
-                pq.append({nn: nnout[Y], idx: Y});
-            } else {
-                tsp.append(remainingPoints[0])
-            }
-        }
-        const cost = calculateCost(tsp);
-        if (cost < bestCost) {
-            bestCost = cost;
-            bestTSP = tsp;
-        }
         if (updateFunc) {
-            await updateFunc(tsp, bestCost);
-            await sleep(timeoutms);
+            const cost = calculateCost(tsp);
+            
+            let edges = []
+            if (tsp.length > 1) {
+                edges.push(tsp[(insertIdx - 1 === -1) ? tsp.length - 1: insertIdx - 1]);
+                edges.push(tsp[insertIdx]);
+                edges.push(tsp[(insertIdx + 1 === tsp.length) ? 1 : insertIdx + 1])
+            }
+            await updateFunc(tsp, cost, [edges]);
+            await sleep(TIMEOUTMS);
+        }
+
+        while (true) {
+            pq = pq.sort((a, b) => a.nn[1] - b.nn[1]);
+            // console.log(pq)
+            const nn = pq[0].nn;
+            const X = pq[0].idx;    
+            [Ypt, thisDist] = nn;
+            Y = points.indexOf(Ypt);
+
+            if (!tsp.includes(Ypt)) {
+                break;
+            }
+            tree.remove(Ypt);
+            pq.splice(0, 1);
+            pq.push({nn: tree.nearest(points[X], 1)[0], idx: X});
+        }
+
+        insertIdx = findBestInsertionPoint(points[Y], thisDist, tsp);
+        tsp.splice(insertIdx, 0, points[Y]);
+        console.log(tsp.slice())
+        remainingPoints.splice(remainingPoints.indexOf(points[Y]), 1);
+        tree.remove(points[Y]);
+
+        pq = []
+        for (let pt of tsp) {
+            pq.push({nn: tree.nearest(pt, 1)[0], idx: points.indexOf(pt)})
         }
     }
-    return bestTSP;
+
+    if (updateFunc) {
+        const cost = calculateCost(tsp);
+        await updateFunc(tsp, cost);
+        await sleep(TIMEOUTMS);
+    }
+    
+    return tsp;
+}
+
+/**
+ * 
+ * @param {*} points 
+ * @param {*} updateFunc 
+ */
+export async function minSpanTreeTSP(points, updateFunc) {
+    return null;
 }

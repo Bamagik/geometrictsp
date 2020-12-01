@@ -2,7 +2,6 @@ import React from 'react';
 import { Button, Col, Form, Row } from 'react-bootstrap';
 import RangeSlider from 'react-bootstrap-range-slider';
 import {
-    XYPlot,
     XAxis,
     YAxis,
     HorizontalGridLines,
@@ -11,7 +10,6 @@ import {
     LineSeries,
     FlexibleWidthXYPlot
 } from 'react-vis'
-import { sleep } from './funcs';
 import { calculateCost, eccentricEllipseTSP, largestAngleTSP, nearestNeighborMultiTSP, nearestNeighborTSP, nearestAdditionTSP } from './tsp';
 import explanations from './explanations.json'
 
@@ -31,7 +29,7 @@ export default class Graph extends React.Component {
 
         this.state = {
             formula: eccentricEllipseTSP.name,
-            data: generateRandomData(INITIAL_COUNT, INITIAL_COUNT),
+            data:  generateRandomData(INITIAL_COUNT, INITIAL_COUNT),
             tsp: [],
             lines: [],
             bestCost: 0,
@@ -63,6 +61,9 @@ export default class Graph extends React.Component {
             case nearestNeighborMultiTSP.name:
                 tsp = await nearestNeighborMultiTSP(this.state.data, this.internalUpdate);
                 break;
+            case nearestAdditionTSP.name:
+                tsp = await nearestAdditionTSP(this.state.data, this.internalUpdate);
+                break;
             default:
                 tsp = []
         }
@@ -71,7 +72,7 @@ export default class Graph extends React.Component {
     }
 
     getNewData = () => {
-        this.setState({data: generateRandomData(this.state.count, this.state.count), tsp: 0})
+        // this.setState({data: generateRandomData(this.state.count, this.state.count), tsp: 0})
     }
 
     addDataPoints = (count) => {
@@ -140,7 +141,7 @@ export default class Graph extends React.Component {
             />
             <br/>
             <Button className="my-3" onClick={this.getNewData}>Randomize Points</Button>
-            <Form.Row noGutters>
+            <Form.Row>
                 <Col>
                     <Form.Control
                         value={formula}
@@ -152,12 +153,13 @@ export default class Graph extends React.Component {
                         <option value={largestAngleTSP.name}>Largest Angle</option>
                         <option value={nearestNeighborTSP.name}>Nearest Neighbor</option>
                         <option value={nearestNeighborMultiTSP.name}>Multi-ended Nearest Neighbor</option>
+                        <option value={nearestAdditionTSP.name}>Nearest Addition</option>
                     </Form.Control>
                 </Col>
                 <Col>
                     <Button onClick={this.startTSPCalculation} disabled={running}>Run TSP</Button>
                 </Col>
-                <p class="pt-4 text-left">
+                <p className="pt-4 text-left">
                     {explanations[formula].join(" ")}
                 </p>
             </Form.Row>

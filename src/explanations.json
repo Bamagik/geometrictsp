@@ -25,6 +25,9 @@
         ],
     "nearestAdditionTSP":
         [
-
+            "This method is an optimized form of nearest neighbor.",
+            "Utilizing a KDTree, nearest addition assumes randomness in the starting points,",
+            "and from those adds points based on proximity to a point in the tsp, and inserts it smartly",
+            "based on where the minimum cost is in the tsp. [2]"
         ]
 }

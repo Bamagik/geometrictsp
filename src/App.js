@@ -9,31 +9,33 @@ class App extends React.Component {
       <div className="App">
         <Container fluid>
           <Row>
-            <Col md={8}>
+            <Col md={6}>
               <h1>Geometric Solutiosn to TSP</h1>
               <h2>A report and exploration</h2>
               <h3>by Quintin Reed</h3>
-              
-              <p>
-                This website is a research into TSP methods using various Computational Geometry methods. 
-                These methods utilize various structures and algorithms to achieve their end results, 
-                and each method will be explained fully.
-              </p>
-              <p>
-                The demo to the right of the screen allows the user to randomly generate up to 100 points and test out various methods
-                of TSP calculation. On display, an explanation of the algorithm will also appear to guide you on what is happening.
-              </p>
-              <p>
-                Below will include research into time and space complexity, 
-                as well as sample times and costs from random generated points. 
-                Additionally, click on the different tabs to see various info in regards to the research on this project.
-              </p>
-
               <Tabs>
+                <Tab eventKey='default' title="Introduction">
+                  <p>
+                    This website is a research into TSP methods using various Computational Geometry methods. 
+                    These methods utilize various structures and algorithms to achieve their end results, 
+                    and each method will be explained fully.
+                  </p>
+                  <p>
+                    The demo to the right of the screen allows the user to randomly generate up to 100 points and test out various methods
+                    of TSP calculation. On display, an explanation of the algorithm will also appear to guide you on what is happening.
+                  </p>
+                  <p>
+                    Click on other tabs to see the research into time and space complexity, 
+                    as well as sample times and costs from random generated points. 
+                    Additionally, click on the different tabs to see various info in regards to the research on this project.
+                  </p>
+                </Tab>
                 <Tab eventKey='timeline' title="Project Timeline">
                   <dl>
                     <dt>Week 6-8</dt>
-                        <dd>Gather equations and start looking at recreating the functions in python</dd>
+                        <dd>
+                          <p>Gather equations and start looking at recreating the functions in python.</p>
+                        </dd>
                     <dt>Week 9</dt>
                         <dd>Focus on updating the website with findings and midproject presentation</dd>
                     <dt>Week 10</dt>
@@ -43,6 +45,24 @@ class App extends React.Component {
                     <dt>Week 15</dt>
                         <dd>Final Presentation and Finalize Website</dd>
                   </dl>
+                </Tab>
+                <Tab eventKey="Description" title="Detailed Overview">
+                  <p>
+                    These methods for solving TSP include various techniques, listed below:
+                    <div className='mx-auto w-50'>
+                      <ul className='text-left'>
+                        <li>Largest Angle Convex Hull</li>
+                        <li>Most Eccentric Ellipse Convex Hull</li>
+                        <li>Single-Ended Nearest Neighbor</li>
+                        <li>Double-Ended Nearest Neighbor</li>
+                        <li>Multi-Ended Nearest Neighbor</li>
+                        <li>Nearest Addition</li>
+                        <li>Farthest Addition</li>
+                        <li>Random Addition</li>
+                        <li>Minimum Spanning Tree</li>
+                      </ul>
+                    </div>
+                  </p>
                 </Tab>
                 <Tab eventKey="bibliography" title="Bibliography">
                   <ol className='text-left'>
@@ -62,7 +82,7 @@ class App extends React.Component {
                 </Tab>
               </Tabs>              
             </Col>
-            <Col md={4} className="py-3">
+            <Col md={6} className="py-3">
               <Graph/>
             </Col>
           </Row>
