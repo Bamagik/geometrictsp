@@ -467,8 +467,7 @@ export async function nearestAdditionTSP(points, updateFunc) {
     }
 
     if (updateFunc) {
-        const cost = calculateCost(tsp);
-        await updateFunc(tsp, cost);
+        await updateFunc(tsp);
         await sleep(TIMEOUTMS);
     }
     
@@ -483,9 +482,112 @@ nearestAdditionTSP.altname = "nearestAdditionTSP";
  * @param {*} updateFunc 
  */
 export async function farthestAdditionTSP(points, updateFunc) {
-    
+    let idx = 0;
+    const pointsCopy = points.slice().sort(() => Math.random() - 0.5);
+    const sp = pointsCopy[idx];
+
+    let tsp = [sp];
+    let tree = new kdTree(tsp, calculateDistance, ['x', 'y']);
+
+    let nnin = new Array(points.length);
+    let pq = []
+
+    let insertIdx = 0;
+
+    for (let i in points) {
+        if (Number(i) !== idx) {
+            nnin[i] = 0
+            pq.push({nn: tree.nearest(points[i], 1)[0], idx: i});
+        }
+    }
+
+    while (tsp.length < points.length) {
+        let thisDist, Xpt, Y, nn;
+
+        if (updateFunc && tsp.length > 1) {            
+            let edges = []
+            if (tsp.length > 1) {
+                edges.push(tsp[(insertIdx - 1 === -1) ? tsp.length - 1: insertIdx - 1]);
+                edges.push(tsp[insertIdx]);
+                edges.push(tsp[(insertIdx + 1 === tsp.length) ? 1 : insertIdx + 1])
+            }
+            await updateFunc(tsp, 0, [edges]);
+            await sleep(TIMEOUTMS);
+        }
+
+        while (true) {
+            pq = pq.sort((a, b) => a.nn[1] - b.nn[1]);
+            
+            nn = pq[pq.length-1].nn;
+            Y = pq[pq.length-1].idx;
+            [Xpt, thisDist] = nn;
+            const oldX = pointsCopy.indexOf(Xpt);
+            nnin[Y] = pointsCopy.indexOf(tree.nearest(pointsCopy[Y], 1)[0][0]);
+            let X = nnin[Y];
+            if (X === oldX) {
+                break; 
+            }
+            pq.splice(pq.length-1, 1);
+            pq.push({nn: tree.nearest(pointsCopy[Y], 1)[0], idx: Y});
+        }
+
+        insertIdx = findBestInsertionPoint(pointsCopy[Y], thisDist, tsp);
+        tsp.splice(insertIdx, 0, pointsCopy[Y]);
+        tree.insert(pointsCopy[Y]);
+        pq.splice(pq.length-1, 1);
+    }
+
+    if (updateFunc) {
+        await updateFunc(tsp);
+        await sleep(TIMEOUTMS);
+    }
+
+    return tsp
 }
 farthestAdditionTSP.altname = "farthestAdditionTSP";
+
+
+/**
+ * 
+ * @param {*} points 
+ * @param {*} updateFunc 
+ */
+export async function randomAdditionTSP(points, updateFunc) {
+    const pointsCopy = points.slice().sort(() => Math.random() - 0.5);
+    const idx = 0;
+    const sp = pointsCopy[0];
+
+    let tsp = [sp];
+    let tree = new kdTree(tsp, calculateDistance, ['x', 'y']);
+    
+    let remainingPoints = pointsCopy.slice();
+    remainingPoints.splice(idx, 1);
+
+    let insertIdx = 0;
+
+    while (tsp.length < points.length) {
+        const Ypt = remainingPoints.pop();
+        let [Xpt, thisDist] = tree.nearest(Ypt, 1)[0];
+
+        insertIdx = findBestInsertionPoint(Ypt, thisDist, tsp);
+        tsp.splice(insertIdx, 0, Ypt);
+        tree.insert(Ypt);
+
+        if (updateFunc) {            
+            let edges = []
+            if (tsp.length > 1) {
+                edges.push(tsp[(insertIdx - 1 === -1) ? tsp.length - 1: insertIdx - 1]);
+                edges.push(tsp[insertIdx]);
+                edges.push(tsp[(insertIdx + 1 === tsp.length) ? 1 : insertIdx + 1])
+            }
+            await updateFunc(tsp, 0, [edges]);
+            await sleep(TIMEOUTMS);
+        }
+    }
+
+    return tsp;
+}
+randomAdditionTSP.altname = "randomAdditionTSP";
 
 
 /**

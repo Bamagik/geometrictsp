@@ -10,7 +10,7 @@ import {
     LineSeries,
     FlexibleWidthXYPlot
 } from 'react-vis';
-import { calculateCost, eccentricEllipseTSP, largestAngleTSP, nearestNeighborMultiTSP, nearestNeighborTSP, nearestAdditionTSP } from './tsp';
+import { calculateCost, eccentricEllipseTSP, largestAngleTSP, nearestNeighborMultiTSP, nearestNeighborTSP, nearestAdditionTSP, farthestAdditionTSP, randomAdditionTSP } from './tsp';
 import explanations from './explanations';
 
 const INITIAL_COUNT = 20;
@@ -63,6 +63,12 @@ export default class Graph extends React.Component {
                 break;
             case nearestAdditionTSP.altname:
                 tsp = await nearestAdditionTSP(this.state.data, this.internalUpdate);
+                break;
+            case farthestAdditionTSP.altname:
+                tsp = await farthestAdditionTSP(this.state.data, this.internalUpdate);
+                break;
+            case randomAdditionTSP.altname:
+                tsp = await randomAdditionTSP(this.state.data, this.internalUpdate);
                 break;
             default:
                 tsp = []
@@ -160,6 +166,8 @@ export default class Graph extends React.Component {
                         <option value={nearestNeighborTSP.altname}>Nearest Neighbor</option>
                         <option value={nearestNeighborMultiTSP.altname}>Multi-ended Nearest Neighbor</option>
                         <option value={nearestAdditionTSP.altname}>Nearest Addition</option>
+                        <option value={farthestAdditionTSP.altname}>Farthest Addition</option>
+                        <option value={randomAdditionTSP.altname}>Random Addition</option>
                     </Form.Control>
                 </Col>
                 <Col>

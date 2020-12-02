@@ -30,6 +30,18 @@ export var explanations = {
             "and from those adds points based on proximity to a point in the tsp, and inserts it smartly",
             "based on where the minimum cost is in the tsp. [2]"
         ],
+    "farthestAdditionTSP":
+        [
+            "This method is an optimized form of nearest neighbor.",
+            "Utilizing a KDTree, farthest addition assumes randomness in the starting points,",
+            "and from those adds points that are farthest from the tsp first. [2]"
+        ],
+    "randomAdditionTSP":
+        [
+            "This method is an optimized form of nearest neighbor.",
+            "Utilizing a KDTree, random addition takes random points and",
+            "finds optimal locations for insertion in the existing TSP. [2]"
+        ],
     "undefined": [ "placeholder" ]
 };
 
