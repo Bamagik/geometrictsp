@@ -28,7 +28,7 @@ export default class Graph extends React.Component {
         super(props);
 
         this.state = {
-            formula: eccentricEllipseTSP.name,
+            formula: eccentricEllipseTSP.altname,
             data:  generateRandomData(INITIAL_COUNT, INITIAL_COUNT),
             tsp: [],
             lines: [],
@@ -46,22 +46,22 @@ export default class Graph extends React.Component {
         const {formula} = this.state;
         let tsp = [];
 
-        this.setState({running: true})
+        this.setState({running: true, tsp, lines: []})
 
         switch (formula) {
-            case largestAngleTSP.name:
+            case largestAngleTSP.altname:
                 tsp = await largestAngleTSP(this.state.data, this.internalUpdate);
                 break;
-            case eccentricEllipseTSP.name:
+            case eccentricEllipseTSP.altname:
                 tsp = await eccentricEllipseTSP(this.state.data, this.internalUpdate);
                 break;
-            case nearestNeighborTSP.name:
+            case nearestNeighborTSP.altname:
                 tsp = await nearestNeighborTSP(this.state.data, this.internalUpdate);
                 break;
-            case nearestNeighborMultiTSP.name:
+            case nearestNeighborMultiTSP.altname:
                 tsp = await nearestNeighborMultiTSP(this.state.data, this.internalUpdate);
                 break;
-            case nearestAdditionTSP.name:
+            case nearestAdditionTSP.altname:
                 tsp = await nearestAdditionTSP(this.state.data, this.internalUpdate);
                 break;
             default:
@@ -155,11 +155,11 @@ export default class Graph extends React.Component {
                         as='select' 
                         custom
                     >
-                        <option value={eccentricEllipseTSP.name}>Most Eccentric Ellipse</option>
-                        <option value={largestAngleTSP.name}>Largest Angle</option>
-                        <option value={nearestNeighborTSP.name}>Nearest Neighbor</option>
-                        <option value={nearestNeighborMultiTSP.name}>Multi-ended Nearest Neighbor</option>
-                        <option value={nearestAdditionTSP.name}>Nearest Addition</option>
+                        <option value={eccentricEllipseTSP.altname}>Most Eccentric Ellipse</option>
+                        <option value={largestAngleTSP.altname}>Largest Angle</option>
+                        <option value={nearestNeighborTSP.altname}>Nearest Neighbor</option>
+                        <option value={nearestNeighborMultiTSP.altname}>Multi-ended Nearest Neighbor</option>
+                        <option value={nearestAdditionTSP.altname}>Nearest Addition</option>
                     </Form.Control>
                 </Col>
                 <Col>
