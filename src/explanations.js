@@ -2,19 +2,25 @@ export var explanations = {
     "largestAngleTSP": 
         [
             "This method starts with finding the convex hull of the set of points.",
-            "From there we look at all the interal points starting from left to right,",
+            "From there we look at the internal points starting from left to right,",
             "and calculate between which existing points in the convex hull has the largest angle to the given point. [1]"
         ],
     "eccentricEllipseTSP":
         [
             "This method starts with finding the convex hull of the set of points.",
-            "From there we look at all the internal points starting from left to right,",
+            "From there we look at the internal points starting from left to right,",
             "and calculate between which existing points in the convex hull has teh most eccentric ellipse",
             "with respect to the given point. [1]"
         ],
     "nearestNeighborTSP":
         [
             "This method is about finding the nearest point to the end of the current cycle.",
+            "Using every point as a potential starting point, it looks for the lowest cost tour through all the points,",
+            "basing the finding of the next point by nearest neighbor approach. [2]"
+        ],
+    "doubleEndNearestNeighborTSP":
+        [
+            "This method is about finding the nearest point to EITHER end of the current tour.",
             "Using every point as a potential starting point, it looks for the lowest cost tour through all the points,",
             "basing the finding of the next point by nearest neighbor approach. [2]"
         ],
@@ -41,6 +47,11 @@ export var explanations = {
             "This method is an optimized form of nearest neighbor.",
             "Utilizing a KDTree, random addition takes random points and",
             "finds optimal locations for insertion in the existing TSP. [2]"
+        ],
+    "minSpanTreeTSP": 
+        [
+            "This method creates an MST and from the MST it creates a tour",
+            "of points based on Pre-Order Traversal from the first point in the list. [2]"
         ],
     "undefined": [ "placeholder" ]
 };

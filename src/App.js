@@ -9,7 +9,7 @@ class App extends React.Component {
       <div className="App">
         <Container fluid>
           <Row>
-            <Col md={6}>
+            <Col md={7}>
               <h1>Geometric Solutiosn to TSP</h1>
               <h2>A report and exploration</h2>
               <h3>by Quintin Reed</h3>
@@ -93,8 +93,8 @@ class App extends React.Component {
                       <dt>Convex Hull Techniques</dt>
                         <dd>
                           <ul>
-                            <li>Largest Angle</li>
-                            <li>Most Eccentric Ellipse</li>
+                            <li>Largest Angle [1]</li>
+                            <li>Most Eccentric Ellipse [1]</li>
                           </ul>
                           <p>
                             Convex Hull Techniques rely on finding the convex hull for the set of points. 
@@ -110,9 +110,9 @@ class App extends React.Component {
                       <dt>Nearest Neighbor Techniques</dt>
                         <dd>
                           <ul>
-                            <li>(Single-Ended) Nearest Neighbor</li>
-                            <li>Double-Ended Nearest Neighbor</li>
-                            <li>Mulit-Ended Nearest Neighbor</li>
+                            <li>(Single-Ended) Nearest Neighbor [2]</li>
+                            <li>Double-Ended Nearest Neighbor [2]</li>
+                            <li>Mulit-Ended Nearest Neighbor [2]</li>
                           </ul>
                           <p>
                             Nearest Neighbor Techniques utilize Nearest Neighbor to find the best points to add to the tour. 
@@ -140,9 +140,9 @@ class App extends React.Component {
                       <dt>Addition Techniques</dt>
                         <dd>
                           <ul>
-                            <li>Nearest Addition</li>
-                            <li>Farthest Addition</li>
-                            <li>Random Addition</li>
+                            <li>Nearest Addition [2]</li>
+                            <li>Farthest Addition [2]</li>
+                            <li>Random Addition [2]</li>
                           </ul>
                           <p>
                             Addition Techniques refer to smarter methods of nearest neighbor utilizing a smart insertion technique rather than simply appending the point
@@ -168,7 +168,7 @@ class App extends React.Component {
                             This heuristic is the second worst performing, performing just a bit better than Farthest Addition.
                           </p>
                         </dd>
-                        <dt>Minimum Spanning Tree</dt>
+                        <dt>Minimum Spanning Tree [2]</dt>
                         <dd>
                           This method has a few different heuristics it can optimize, however for the purpose of this paper we are only caring
                           about the standard method for creation from an MST. For this method, we find the MST, 
@@ -176,9 +176,6 @@ class App extends React.Component {
                           For the purposes of this project, the order of the adjacent points, left, right, etc. are considered arbitrary.
                         </dd>
                     </dl>
-                    <ul>
-                      <li>Minimum Spanning Tree</li>
-                    </ul>
                   </div>
                 </Tab>
                 <Tab eventKey="bibliography" title="Bibliography">
@@ -201,7 +198,7 @@ class App extends React.Component {
                 </Tab>
               </Tabs>              
             </Col>
-            <Col md={6} className="py-3">
+            <Col md={5} className="py-3">
               <Graph/>
             </Col>
           </Row>

@@ -10,7 +10,18 @@ import {
     LineSeries,
     FlexibleWidthXYPlot
 } from 'react-vis';
-import { calculateCost, eccentricEllipseTSP, largestAngleTSP, nearestNeighborMultiTSP, nearestNeighborTSP, nearestAdditionTSP, farthestAdditionTSP, randomAdditionTSP } from './tsp';
+import { 
+    calculateCost, 
+    eccentricEllipseTSP, 
+    largestAngleTSP, 
+    nearestNeighborMultiTSP, 
+    nearestNeighborTSP, 
+    nearestAdditionTSP, 
+    farthestAdditionTSP, 
+    randomAdditionTSP,
+    doubleEndNearestNeighborTSP,
+    minSpanTreeTSP
+} from './tsp';
 import explanations from './explanations';
 
 const INITIAL_COUNT = 20;
@@ -34,19 +45,21 @@ export default class Graph extends React.Component {
             lines: [],
             bestCost: 0,
             count: INITIAL_COUNT,
-            running: false
+            running: false,
+            highlightPt: []
         }
     }
 
-    internalUpdate = async (tsp, bestCost=0, lines=[]) => {
-        await this.setState({tsp, bestCost, lines});
+    internalUpdate = async (tsp, bestCost=0, lines=[], highlightPt=[]) => {
+        await this.setState({tsp, bestCost, lines, highlightPt});
     }
 
     startTSPCalculation = async () => {
         const {formula} = this.state;
         let tsp = [];
 
-        this.setState({running: true, tsp, lines: []})
+        this.setState({running: true});
+        this.internalUpdate(tsp, 0, [], []);
 
         switch (formula) {
             case largestAngleTSP.altname:
@@ -70,11 +83,17 @@ export default class Graph extends React.Component {
             case randomAdditionTSP.altname:
                 tsp = await randomAdditionTSP(this.state.data, this.internalUpdate);
                 break;
+            case doubleEndNearestNeighborTSP.altname:
+                tsp = await doubleEndNearestNeighborTSP(this.state.data, this.internalUpdate);
+                break;
+            case minSpanTreeTSP.altname:
+                tsp = await minSpanTreeTSP(this.state.data, this.internalUpdate);
+                break;
             default:
                 tsp = []
         }
 
-        this.setState({tsp, lines: [], running: false});
+        this.setState({tsp, lines: [], running: false, highlightPt: []});
     }
 
     getNewData = () => {
@@ -99,15 +118,9 @@ export default class Graph extends React.Component {
     }
     
     render() {
-        const {tsp, data, formula, count, bestCost, lines, running} = this.state;
-
-        console.log(formula)
+        const {tsp, data, formula, count, bestCost, lines, running, highlightPt} = this.state;
 
         let explanation = explanations ? explanations[formula].join(" ") : "";
-
-        // let explanation = explanations["undefined"];
-
-
 
         return <div>
             <div id='graph'>
@@ -138,6 +151,9 @@ export default class Graph extends React.Component {
                         />
                         )
                     )}
+                    {highlightPt.length ? <MarkSeries
+                        data={highlightPt}
+                    /> : undefined }
                 </FlexibleWidthXYPlot>
             </div>
             <Row>
@@ -170,10 +186,12 @@ export default class Graph extends React.Component {
                         <option value={eccentricEllipseTSP.altname}>Most Eccentric Ellipse</option>
                         <option value={largestAngleTSP.altname}>Largest Angle</option>
                         <option value={nearestNeighborTSP.altname}>Nearest Neighbor</option>
+                        <option value={doubleEndNearestNeighborTSP.altname}>Double-ended Nearest Neighbor</option>
                         <option value={nearestNeighborMultiTSP.altname}>Multi-ended Nearest Neighbor</option>
                         <option value={nearestAdditionTSP.altname}>Nearest Addition</option>
                         <option value={farthestAdditionTSP.altname}>Farthest Addition</option>
                         <option value={randomAdditionTSP.altname}>Random Addition</option>
+                        <option value={minSpanTreeTSP.altname}>Min Span Tree</option>
                     </Form.Control>
                 </Col>
                 <Col>

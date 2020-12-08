@@ -1,4 +1,5 @@
 import { kdTree } from 'kd-tree-javascript';
+import { pi } from 'mathjs';
 import { sleep } from './funcs';
 
 const math = require('mathjs');
@@ -254,19 +255,12 @@ export async function nearestNeighborTSP(points, updateFunc) {
         let remainingPoints = [...points];
         remainingPoints.splice(startIdx, 1);
 
-        while (tsp.length !== points.length) {
-            let bestDist = Infinity;
-            let bestIdx = null;
+        let tree = new kdTree(remainingPoints, calculateDistance, ['x', 'y']);
 
-            for (const idx in remainingPoints) {
-                const dist = calculateDistance(remainingPoints[idx], tsp[tsp.length - 1])
-                if (dist < bestDist) {
-                    bestDist = dist;
-                    bestIdx = idx;
-                }
-            }
-            tsp.push(remainingPoints[bestIdx]);
-            remainingPoints.splice(bestIdx, 1);
+        while (tsp.length !== points.length) {
+            let [bestPt, bestDist] = tree.nearest(tsp[tsp.length - 1], 1)[0]
+            tsp.push(bestPt);
+            tree.remove(bestPt);
 
             if (updateFunc) {
                 await updateFunc(tsp, bestCost, [tsp.slice(tsp.length-2)]);
@@ -287,6 +281,72 @@ export async function nearestNeighborTSP(points, updateFunc) {
     return bestTSP;
 }
 nearestNeighborTSP.altname = "nearestNeighborTSP";
+
+
+/**
+ * 
+ * @param {*} points 
+ * @param {*} updateFunc 
+ */
+export async function doubleEndNearestNeighborTSP(points, updateFunc) {
+    let bestCost = Infinity;
+    let bestTSP = null;
+
+    for (const startIdx in points) {
+        let tsp = [points[startIdx]];
+        let remainingPoints = [...points];
+        remainingPoints.splice(startIdx, 1);
+
+        let tree = new kdTree(remainingPoints, calculateDistance, ['x', 'y']);
+
+        while (tsp.length !== points.length) {
+            const endpoints = [tsp[0], tsp[tsp.length - 1]]
+
+            let bestPt = null;
+            let bestDist = Infinity;
+            let bestEndPt = null;
+
+            for (let endpt of endpoints) {
+                let [xPt, thisDist] = tree.nearest(endpt, 1)[0];
+
+                if (thisDist < bestDist) {
+                    bestDist = thisDist;
+                    bestPt = xPt;
+                    bestEndPt = endpt;
+                }
+            }
+
+            let newestEdge = []
+
+            if (bestEndPt === endpoints[1]) {
+                tsp.push(bestPt);
+                newestEdge = tsp.slice(tsp.length-2);
+            } else {
+                tsp.splice(0, 0, bestPt);
+                newestEdge = tsp.slice(0, 2);
+            }
+            tree.remove(bestPt);
+
+            if (updateFunc) {
+                await updateFunc(tsp, bestCost, [newestEdge], [bestEndPt]);
+                await sleep(TIMEOUTMS/2);
+            }
+        }
+        const cost = calculateCost(tsp)
+        if (cost < bestCost) {
+            bestCost = cost;
+            bestTSP = tsp;
+        }
+
+        if (updateFunc) {
+            await updateFunc(tsp, bestCost, [tsp.slice(tsp.length-2)]);
+            await sleep(TIMEOUTMS/2);
+        }
+    }
+    return bestTSP;
+}
+doubleEndNearestNeighborTSP.altname = "doubleEndNearestNeighborTSP";
+
 
 /**
  * 
@@ -590,11 +650,115 @@ export async function randomAdditionTSP(points, updateFunc) {
 randomAdditionTSP.altname = "randomAdditionTSP";
 
 
+async function minSpanTree(points, updateFunc) {
+    function find(parent, i) {
+        if (parent[i] == i) {
+            return i
+        }
+        return find(parent, parent[i])
+    }
+
+    function union(parent, rank, x, y) {
+        const xroot = find(parent, x);
+        const yroot = find(parent, y);
+        
+        if (rank[xroot] < rank[yroot]) {
+            parent[xroot] = yroot;
+        } else if (rank[xroot] > rank[yroot]) {
+            parent[yroot] = xroot;
+        } else {
+            parent[yroot] = xroot;
+            rank[xroot] += 1;
+        }
+    }
+
+    let edges = [];
+
+    for (let pidx in points.slice(0, points.length - 1)) {
+        const p = points[pidx];
+        for (let qidx in points.slice(Number(pidx)+1)) {
+            const q = points[Number(pidx) + 1 + Number(qidx)];
+            edges.push({dist: calculateDistance(p, q), pidx, qidx: Number(pidx) + 1 + Number(qidx)})
+        }
+    }
+    edges.sort((a, b) => a.dist - b.dist);
+
+    let mst = [];
+
+    let parent = [...Array(points.length).keys()];
+    let rank = math.zeros(points.length);
+
+    while (mst.length < points.length - 1) {
+        const {dist, pidx, qidx} = edges.splice(0, 1)[0];
+
+        const x = find(parent, pidx);
+        const y = find(parent, qidx);
+
+        if (x != y) {
+            mst.push([points[pidx], points[qidx]]);
+            union(parent, rank, x, y);
+
+            if (updateFunc) {            
+                await updateFunc([], 0, mst);
+                await sleep(TIMEOUTMS);
+            }
+        }
+    }
+
+    console.log(mst);
+
+    return mst;
+}
+
+
 /**
  * 
  * @param {*} points 
  * @param {*} updateFunc 
  */
 export async function minSpanTreeTSP(points, updateFunc) {
-    return null;
+    let globalEdges = [];
+    
+    /**
+     * 
+     * @param {*} node 
+     * @param {*} mst 
+     */
+    async function mst_traversal(node, mst) {
+        let adjacent = [];
+        let mst_edges = [];
+
+        for (let idx in mst) {
+            const edge = mst[idx];
+            if (edge[0] === node) {
+                adjacent.push(edge[1]);
+                mst_edges.push(idx);
+            }
+            if (edge[1] === node) {
+                adjacent.push(edge[0]);
+                mst_edges.push(idx);  
+            }  
+        }   
+
+        let tsp = [node];
+
+        for (let idx in adjacent) {
+            globalEdges.push([node, adjacent[idx]])
+
+            let mst_copy = mst.slice();
+            mst_copy.splice(mst_edges[idx], 1);
+            tsp.push(...await mst_traversal(adjacent[idx], mst_copy));
+        }
+
+        return tsp;
+    }
+
+    const mst = await minSpanTree(points, updateFunc);
+
+    const tsp = await mst_traversal(points[0], mst);
+
+    console.log(tsp);
+
+    return tsp;
 }
+minSpanTreeTSP.altname = "minSpanTreeTSP";
