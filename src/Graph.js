@@ -107,34 +107,39 @@ export default class Graph extends React.Component {
 
         // let explanation = explanations["undefined"];
 
+
+
         return <div>
-            <FlexibleWidthXYPlot height={300}
-                xDomain={[0-count/10, count+count/10]}
-                yDomain={[0-count/10, count+count/10]}
-            >
-                <VerticalGridLines />
-                <HorizontalGridLines />
-                <XAxis />
-                <YAxis />
-                <MarkSeries
-                    data={data}
-                    animation
-                />
-                <LineSeries
-                    data={tsp.length ? tsp.concat(tsp[0]) : []}
-                />
-                {lines.map(line => (
-                    <LineSeries
-                        key={JSON.stringify(line)}
-                        data={line}
-                        style={{
-                            stroke: 'pink',
-                            strokeWidth: 5
-                        }}
+            <div id='graph'>
+                <FlexibleWidthXYPlot 
+                    height={350}
+                    xDomain={[0-count/10, count+count/10]}
+                    yDomain={[0-count/10, count+count/10]}
+                >
+                    <VerticalGridLines />
+                    <HorizontalGridLines />
+                    <XAxis />
+                    <YAxis />
+                    <MarkSeries
+                        data={data}
+                        animation
                     />
-                    )
-                )}
-            </FlexibleWidthXYPlot>
+                    <LineSeries
+                        data={tsp.length ? tsp.concat(tsp[0]) : []}
+                    />
+                    {lines.map(line => (
+                        <LineSeries
+                            key={JSON.stringify(line)}
+                            data={line}
+                            style={{
+                                stroke: 'pink',
+                                strokeWidth: 5
+                            }}
+                        />
+                        )
+                    )}
+                </FlexibleWidthXYPlot>
+            </div>
             <Row>
                 <Col>
                     {"Best Cost: "} 
@@ -150,9 +155,10 @@ export default class Graph extends React.Component {
                 value={count}
                 onChange={(e) => this.updateCount(Number(e.target.value))}
                 tooltip='on'
+                disabled={running}
             />
             <br/>
-            <Button className="my-3" onClick={this.getNewData}>Randomize Points</Button>
+            <Button className="my-3" onClick={this.getNewData} disabled={running}>Randomize Points</Button>
             <Form.Row>
                 <Col>
                     <Form.Control

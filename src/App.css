@@ -1,3 +1,7 @@
 .App {
   text-align: center;
 }
+
+.text-indent-md {
+  text-indent: 50px;
+}
