@@ -1,23 +1,23 @@
 {
   "files": {
-    "main.css": "/geometrictsp/static/css/main.15b9ac12.chunk.css",
-    "main.js": "/geometrictsp/static/js/main.3667aa65.chunk.js",
-    "main.js.map": "/geometrictsp/static/js/main.3667aa65.chunk.js.map",
+    "main.css": "/geometrictsp/static/css/main.08ac8a89.chunk.css",
+    "main.js": "/geometrictsp/static/js/main.896f5695.chunk.js",
+    "main.js.map": "/geometrictsp/static/js/main.896f5695.chunk.js.map",
     "runtime-main.js": "/geometrictsp/static/js/runtime-main.6296e69b.js",
     "runtime-main.js.map": "/geometrictsp/static/js/runtime-main.6296e69b.js.map",
     "static/css/2.d0b55319.chunk.css": "/geometrictsp/static/css/2.d0b55319.chunk.css",
-    "static/js/2.b50607fe.chunk.js": "/geometrictsp/static/js/2.b50607fe.chunk.js",
-    "static/js/2.b50607fe.chunk.js.map": "/geometrictsp/static/js/2.b50607fe.chunk.js.map",
+    "static/js/2.b9fa4e43.chunk.js": "/geometrictsp/static/js/2.b9fa4e43.chunk.js",
+    "static/js/2.b9fa4e43.chunk.js.map": "/geometrictsp/static/js/2.b9fa4e43.chunk.js.map",
     "index.html": "/geometrictsp/index.html",
     "static/css/2.d0b55319.chunk.css.map": "/geometrictsp/static/css/2.d0b55319.chunk.css.map",
-    "static/css/main.15b9ac12.chunk.css.map": "/geometrictsp/static/css/main.15b9ac12.chunk.css.map",
-    "static/js/2.b50607fe.chunk.js.LICENSE.txt": "/geometrictsp/static/js/2.b50607fe.chunk.js.LICENSE.txt"
+    "static/css/main.08ac8a89.chunk.css.map": "/geometrictsp/static/css/main.08ac8a89.chunk.css.map",
+    "static/js/2.b9fa4e43.chunk.js.LICENSE.txt": "/geometrictsp/static/js/2.b9fa4e43.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
     "static/js/runtime-main.6296e69b.js",
     "static/css/2.d0b55319.chunk.css",
-    "static/js/2.b50607fe.chunk.js",
-    "static/css/main.15b9ac12.chunk.css",
-    "static/js/main.3667aa65.chunk.js"
+    "static/js/2.b9fa4e43.chunk.js",
+    "static/css/main.08ac8a89.chunk.css",
+    "static/js/main.896f5695.chunk.js"
   ]
 }
