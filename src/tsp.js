@@ -1,5 +1,4 @@
 import { kdTree } from 'kd-tree-javascript';
-import { pi } from 'mathjs';
 import { sleep } from './funcs';
 
 const math = require('mathjs');

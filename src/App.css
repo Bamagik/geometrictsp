@@ -5,3 +5,7 @@
 .text-indent-md {
   text-indent: 50px;
 }
+
+.text-indent-0 {
+  text-indent: 0;
+}

@@ -36,6 +36,18 @@ class App extends React.Component {
                       but share the same structure for solution. An example is the use of Largest Angle vs Eccentric Ellipse for the Convex Hull techniques for solving TSP.
                     </p>
                     <p>
+                      Below are two images comparing the efficiency in terms of time and accuracy across all the methods you can see on this page. More info on why they perform
+                      the way they do is on the Detailed Overview tab.
+                    </p>
+                    <Row className='text-indent-0'>
+                      <Col xl={6}>
+                        <img src={process.env.PUBLIC_URL + "/time_chart.svg"} width='400'/>
+                      </Col>
+                      <Col xl={6}>
+                        <img src={process.env.PUBLIC_URL + "/cost_chart.svg"} width='400'/>
+                      </Col>
+                    </Row>
+                    <p>
                       For more information on these techniques, or for information on the process for creation of this project, 
                       please visit the other tabs and play with the demo.
                     </p>

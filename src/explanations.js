@@ -51,7 +51,8 @@ export var explanations = {
     "minSpanTreeTSP": 
         [
             "This method creates an MST and from the MST it creates a tour",
-            "of points based on Pre-Order Traversal from the first point in the list. [2]"
+            "of points based on Pre-Order Traversal from the first point in the list. [2]",
+            "For this algorithm to be improved, the use of a heuristic other than Pre-Order Traversal would benefit the algorithm."
         ],
     "undefined": [ "placeholder" ]
 };
