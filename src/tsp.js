@@ -3,14 +3,25 @@ import { sleep } from './funcs';
 
 const math = require('mathjs');
 
-const TIMEOUTMS = 300;
+const TIMEOUTMS = 250;
 const ADDRAD = 2
 
+/**
+ * Calculate euclidean distance
+ * @param {Object} p point p
+ * @param {Object} q point q
+ */
 function calculateDistance(p, q) {
     const v = [p.x - q.x, p.y - q.y];
     return math.norm(v);
 }
 
+/**
+ * Calculate angle of q-p-r, where p is the vertex
+ * @param {Object} p vertex
+ * @param {Object} q point q
+ * @param {Object} r point r
+ */
 function calculateAngle(p, q, r) {
     const v1 = [q.x - p.x, q.y - p.y]
     const v2 = [r.x - p.x, r.y - p.y]
@@ -18,6 +29,12 @@ function calculateAngle(p, q, r) {
     return math.acos( math.divide(math.dot(v1, v2), (math.norm(v1) * math.norm(v2) ) ) )
 }
 
+/**
+ * Find the best cost insertion area in the TSP for a point Y with radial-ball distance R*2
+ * @param {Object} Y point Y
+ * @param {Number} R distance
+ * @param {Object[]} tsp tsp tour
+ */
 function findBestInsertionPoint(Y, R, tsp) {
     const tree = new kdTree(tsp.slice(), calculateDistance, ['x', 'y']);
 
@@ -52,6 +69,10 @@ function findBestInsertionPoint(Y, R, tsp) {
     return bestIdx;
 }
 
+/**
+ * Calculate the cost of the TSP tour.
+ * @param {Object[]} tsp tsp tour
+ */
 export function calculateCost(tsp) {
     let cost = 0;
     for (const idx in tsp) {
@@ -63,30 +84,22 @@ export function calculateCost(tsp) {
     return cost
 }
 
+/**
+ * Calculate the eccentricity of an ellipse with foci q and r and point p.
+ * @param {Object} p edge point
+ * @param {Object} q foci
+ * @param {Object} r foci
+ */
 function calculateEccentricity(p, q, r) {
     return calculateDistance(q, r) / 
         ( calculateDistance(p, q) + calculateDistance(p, r) );
 }
 
-function nearestNeighbor(pt, points) {
-    let bestDist = Infinity;
-    let bestIdx = null;
-    
-    for (const idx in points) {
-        const q = points[idx];
-        const dist = calculateDistance(q, pt);
-        if (dist < bestDist) {
-            bestDist = dist;
-            bestIdx = idx;
-        }
-    }
-
-    return bestIdx;
-}
-
 
 /**
- * @param {Array} points 
+ * Find the convex hull from a set of points
+ * @param {Object[]} points points list
+ * @param {Function} updateFunc update function for the UI, can be undefined.
  */
 export async function convexHull(points, updateFunc) {
     points = points.sort((a, b) => a.x - b.x);
@@ -149,9 +162,11 @@ export async function convexHull(points, updateFunc) {
 }
 
 /**
- * @param {Array} points 
+ * Largest Angle Heurisitic for Convex Hull TSP
+ * @param {Object[]} points points list
  */
 export async function largestAngleTSP(points, updateFunc) {
+    // get cconvex hull
     let hull = await convexHull(points, updateFunc);
 
     let difference = points.filter((p) => !hull.includes(p));
@@ -194,11 +209,12 @@ export async function largestAngleTSP(points, updateFunc) {
 largestAngleTSP.altname = "largestAngleTSP";
 
 /**
- * 
- * @param {*} points 
- * @param {*} updateFunc 
+ * Most Eccentric Ellipse Heurisitc for Convex Hull TSP
+ * @param {Object[]} points points list.
+ * @param {Function} updateFunc update function for UI, can be undefined.
  */
 export async function eccentricEllipseTSP(points, updateFunc) {
+    // get convex hull
     let hull = await convexHull(points, updateFunc);
 
     let difference = points.filter((p) => !hull.includes(p));
@@ -241,9 +257,9 @@ export async function eccentricEllipseTSP(points, updateFunc) {
 eccentricEllipseTSP.altname = "eccentricEllipseTSP";
 
 /**
- * 
- * @param {*} points 
- * @param {*} updateFunc 
+ * Nearest Neighbor TSP. Single-ended.
+ * @param {Object[]} points points list
+ * @param {Function} updateFunc update function for UI. can be undefined.
  */
 export async function nearestNeighborTSP(points, updateFunc) {
     let bestCost = Infinity;
@@ -283,9 +299,9 @@ nearestNeighborTSP.altname = "nearestNeighborTSP";
 
 
 /**
- * 
- * @param {*} points 
- * @param {*} updateFunc 
+ * Double ended nearest neighbor TSP. uses both ends to add to the tour.
+ * @param {Object[]} points points list
+ * @param {Function} updateFunc update function for UI. can be undefined.
  */
 export async function doubleEndNearestNeighborTSP(points, updateFunc) {
     let bestCost = Infinity;
@@ -348,9 +364,9 @@ doubleEndNearestNeighborTSP.altname = "doubleEndNearestNeighborTSP";
 
 
 /**
- * 
- * @param {Array} points 
- * @param {Function} updateFunc 
+ * Nearest Neighbor Multi-Fragment TSP. Build up TSP from individual smaller edges.
+ * @param {Object[]} points points list
+ * @param {Function} updateFunc update function for UI, can be undefined.
  */
 export async function nearestNeighborMultiTSP(points, updateFunc) {
     let degree = Array(points.length).fill(0);
@@ -461,9 +477,9 @@ export async function nearestNeighborMultiTSP(points, updateFunc) {
 nearestNeighborMultiTSP.altname = "nearestNeighborMultiTSP";
 
 /**
- * 
- * @param {Array} points 
- * @param {Function} updateFunc 
+ * Nearest Addition TSP. Build up TSP by finding nearest points, smart insertion.
+ * @param {Object[]} points points list
+ * @param {Function} updateFunc update function for UI, can be undefined.
  */
 export async function nearestAdditionTSP(points, updateFunc) {
     let idx = 0;
@@ -536,9 +552,9 @@ nearestAdditionTSP.altname = "nearestAdditionTSP";
 
 
 /**
- * 
- * @param {*} points 
- * @param {*} updateFunc 
+ * Farthest Addition TSP. Build up TSP by finding farthest points. Smart insertion.
+ * @param {Object[]} points points list
+ * @param {Function} updateFunc update function for UI, can be undefined.
  */
 export async function farthestAdditionTSP(points, updateFunc) {
     let idx = 0;
@@ -607,9 +623,9 @@ farthestAdditionTSP.altname = "farthestAdditionTSP";
 
 
 /**
- * 
- * @param {*} points 
- * @param {*} updateFunc 
+ * Random Addition TSP. Build up TSP by using random points with smart insertion.
+ * @param {Object[]} points points list.
+ * @param {Function} updateFunc update function for UI, can be undefined
  */
 export async function randomAdditionTSP(points, updateFunc) {
     const pointsCopy = points.slice().sort(() => Math.random() - 0.5);
@@ -648,15 +664,31 @@ export async function randomAdditionTSP(points, updateFunc) {
 }
 randomAdditionTSP.altname = "randomAdditionTSP";
 
-
+/**
+ * Min Span Tree algorithm
+ * @param {Object[]} points points list
+ * @param {Function} updateFunc update function for UI, can be undefined.
+ */
 async function minSpanTree(points, updateFunc) {
+    /**
+     * Find the parent of i to see if they share the same tree.
+     * This is to make sure that two branches don't connect.
+     * @param {Number[]} parent parent based index array.
+     * @param {Number} i index
+     */
     function find(parent, i) {
         if (parent[i] == i) {
             return i
         }
         return find(parent, parent[i])
     }
-
+    /**
+     * Union of the two points, adjust the parent array and ranks
+     * @param {Number[]} parent parent list of branches
+     * @param {Number[]} rank rank of point, the higher the more branches come off of it.
+     * @param {Number} x x point
+     * @param {Number} y y point
+     */
     function union(parent, rank, x, y) {
         const xroot = find(parent, x);
         const yroot = find(parent, y);
@@ -711,7 +743,7 @@ async function minSpanTree(points, updateFunc) {
 
 
 /**
- * 
+ * MST TSP solution. Use pre-order traversal after finding MST.
  * @param {*} points 
  * @param {*} updateFunc 
  */
@@ -719,9 +751,9 @@ export async function minSpanTreeTSP(points, updateFunc) {
     let globalEdges = [];
     
     /**
-     * 
-     * @param {*} node 
-     * @param {*} mst 
+     * MST Pre-order traversal to create TSP.
+     * @param {Object} node 
+     * @param {Object[][]} mst 
      */
     async function mst_traversal(node, mst) {
         let adjacent = [];
@@ -756,7 +788,7 @@ export async function minSpanTreeTSP(points, updateFunc) {
 
     const tsp = await mst_traversal(points[0], mst);
 
-    console.log(tsp);
+    // console.log(tsp);
 
     return tsp;
 }

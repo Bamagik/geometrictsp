@@ -172,6 +172,7 @@ export default class Graph extends React.Component {
                 onChange={(e) => this.updateCount(Number(e.target.value))}
                 tooltip='on'
                 disabled={running}
+                min={5}
             />
             <br/>
             <Button className="my-3" onClick={this.getNewData} disabled={running}>Randomize Points</Button>
